@@ -1,0 +1,75 @@
+/* ── Orders / Deficiencies modal ─────────────────────────────────────────── */
+.db.modals.orders {
+    margin: auto;
+    margin-top: 10px;
+    width: 90%;
+    max-width: 780px;
+    max-height: 90vh;         /* FIX: was fixed 500px — now adapts to viewport */
+    overflow-y: auto;
+    background-color: aliceblue;
+    border-radius: 10px;
+    padding: 5px 0;
+}
+
+ul {
+    list-style: none;
+}
+
+/* ── Client info grid ────────────────────────────────────────────────────── */
+.modal-orders-client-infos {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0 15px;
+    padding: 0;
+}
+.modal-orders-client-infos li {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    word-break: break-word;
+    gap: 8px;
+}
+.modal-orders-client-infos li span:first-child {
+    flex-shrink: 0;
+    color: #555;
+}
+.modal-orders-client-infos li span:last-child {
+    text-align: right;
+    word-break: break-all;
+}
+
+/* ── Ordered products table inside modal
+   FIX: table was overflowing and products were not visible.
+   The wrapper now scrolls horizontally on small screens. ─────────────────── */
+.modal-table-wrapper {
+    max-height: 260px;
+    overflow-y: auto;
+    overflow-x: auto;   /* FIX: horizontal scroll so columns don't get squashed */
+    width: 98%;
+    margin: auto;
+    -webkit-overflow-scrolling: touch;
+}
+.modal-table-wrapper table {
+    min-width: 480px;   /* FIX: ensures columns are readable at any modal width */
+}
+
+/* ── Action buttons row ──────────────────────────────────────────────────── */
+.orders-actions-buttons {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 8px;
+}
+
+/* ── Responsive: stack client grid on narrow screens ─────────────────────── */
+@media (max-width: 600px) {
+    .db.modals.orders {
+        width: 98%;
+        max-height: 95vh;
+        margin-top: 4px;
+    }
+    .modal-orders-client-infos {
+        grid-template-columns: 1fr;
+    }
+}

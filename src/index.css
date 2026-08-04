@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+
+/* ============================================================
+   Design tokens — shared across the dashboard.
+
+   Pulled from the palette that modals.css / loading.css / Login.css
+   already established (brand blue #0e92e4, ink #0f1c35, soft brand-tinted
+   shadows, generous radius, DM Sans) but which the sidebar/header/table
+   chrome never adopted — this file is the single place that now applies
+   it app-wide instead of per-component.
+   ============================================================ */
+:root {
+  --db-brand:       #0e92e4;
+  --db-brand-dark:  #0b7abf;
+  --db-brand-deep:  #0a1c27;
+  --db-ink:         #0f1c35;
+  --db-ink-soft:    #4a5568;
+  --db-muted:       #6b7280;
+  --db-border:      #e2e8f0;
+  --db-surface:     #ffffff;
+  --db-bg:          #f6f8fb;
+
+  --db-success:     #16a34a;
+  --db-success-bg:  #dcfce7;
+  --db-warning:     #d97706;
+  --db-warning-bg:  #fef3c7;
+  --db-danger:      #dc2626;
+  --db-danger-bg:   #fee2e2;
+
+  --db-radius-sm:   10px;
+  --db-radius:      14px;
+  --db-radius-lg:   20px;
+
+  --db-shadow-sm:   0 2px 8px rgba(15,28,53,0.06);
+  --db-shadow:      0 8px 24px rgba(14,146,228,0.08), 0 2px 8px rgba(0,0,0,0.04);
+  --db-shadow-lg:   0 20px 50px rgba(15,28,53,0.16);
+
+  --db-font:        'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --db-font-mono:   'DM Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+}
+
+body{
+    background-color: var(--db-bg);
+    color: var(--db-ink);
+    font-family: var(--db-font);
+    scroll-behavior: smooth;
+}
+
+/* ── Bootstrap component refresh ──────────────────────────────────────────
+   Bootstrap 5.3's compiled CSS sets each button/badge variant's colors as
+   its OWN local --bs-btn-* custom properties (not inherited from a root
+   --bs-primary), so a root-level override wouldn't reach them — these
+   target the actual component classes directly instead.               */
+.btn {
+  border-radius: var(--db-radius-sm);
+  font-weight: 600;
+  padding: 0.55rem 1.15rem;
+  transition: transform 0.1s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+.btn:active { transform: scale(0.98); }
+
+.btn-primary {
+  --bs-btn-bg: var(--db-brand);
+  --bs-btn-border-color: var(--db-brand);
+  --bs-btn-hover-bg: var(--db-brand-dark);
+  --bs-btn-hover-border-color: var(--db-brand-dark);
+  --bs-btn-active-bg: var(--db-brand-dark);
+  --bs-btn-active-border-color: var(--db-brand-dark);
+  box-shadow: 0 4px 14px rgba(14,146,228,0.25);
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--db-brand);
+  --bs-btn-border-color: var(--db-brand);
+  --bs-btn-hover-bg: var(--db-brand);
+  --bs-btn-hover-border-color: var(--db-brand);
+  --bs-btn-active-bg: var(--db-brand-dark);
+  --bs-btn-active-border-color: var(--db-brand-dark);
+}
+.btn-danger { box-shadow: 0 4px 14px rgba(220,38,38,0.2); }
+.btn-success { box-shadow: 0 4px 14px rgba(22,163,74,0.2); }
+.btn-secondary, .btn-outline-secondary { --bs-btn-border-color: var(--db-border); }
+
+.card, .accordion-item {
+  border-radius: var(--db-radius) !important;
+  border-color: var(--db-border) !important;
+}
+.accordion-button {
+  font-weight: 600;
+  color: var(--db-ink);
+}
+.accordion-button:not(.collapsed) {
+  background-color: #eef6fd;
+  color: var(--db-brand-dark);
+  box-shadow: none;
+}
+.accordion-button:focus { box-shadow: 0 0 0 3px rgba(14,146,228,0.15); }
+
+.badge { border-radius: 999px; font-weight: 600; padding: 0.4em 0.75em; }
+
+.form-control, .form-select {
+  border-radius: var(--db-radius-sm);
+  border-color: var(--db-border);
+}
+.form-control:focus, .form-select:focus {
+  border-color: var(--db-brand);
+  box-shadow: 0 0 0 3px rgba(14,146,228,0.15);
+}
+
+.alert { border-radius: var(--db-radius-sm); border: none; }
+.alert-danger { background: var(--db-danger-bg); color: #991b1b; }
+.alert-success { background: var(--db-success-bg); color: #14532d; }
+
+/* ── Shared page shell — replaces the identical position:absolute block
+   previously duplicated verbatim across DbHome/settings/deficiency/
+   Statistics/orderDetails .css (only the class name differed). ──────────── */
+.db-home,
+.db-settings,
+.db-deficiency,
+.db-statistics,
+.db-order-details {
+    position: absolute;
+    width: calc(100% - 230px);
+    top: 0;
+    right: 0;
+    margin: 0 5px;
+    background-color: var(--db-bg);
+    padding: 0 16px 24px;
+}
+.db-home.rtl,
+.db-settings.rtl,
+.db-deficiency.rtl,
+.db-statistics.rtl,
+.db-order-details.rtl {
+    right: auto;
+    left: 0;
+}
+
+@media (max-width: 855px) {
+    .db-home,
+    .db-settings,
+    .db-deficiency,
+    .db-statistics,
+    .db-order-details,
+    .db-home.rtl,
+    .db-settings.rtl,
+    .db-deficiency.rtl,
+    .db-statistics.rtl,
+    .db-order-details.rtl {
+        position: static;
+        width: 100%;
+        margin: 0;
+        padding: 12px;
+    }
+}
+
+/* ── Shared table polish — targets .orders-table (Orders/Home/Deficiencies
+   desktop tables) and .order-card (their phone equivalents). ────────────── */
+.orders-table {
+  border-collapse: separate;
+  border-spacing: 0;
+  overflow: hidden;
+}
+.orders-table thead th {
+  background: var(--db-bg);
+  color: var(--db-muted);
+  font-weight: 700;
+  font-size: 0.76rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-bottom: 1px solid var(--db-border) !important;
+  padding: 12px 14px;
+  white-space: nowrap;
+}
+.orders-table tbody td {
+  padding: 12px 14px;
+  vertical-align: middle;
+  border-color: var(--db-border) !important;
+  font-size: 0.9rem;
+}
+.orders-table tbody tr {
+  transition: background 0.12s ease;
+}
+.orders-table tbody tr:hover {
+  background: #f8fbff;
+}
+.order-card {
+  border: 1px solid var(--db-border) !important;
+  border-radius: var(--db-radius) !important;
+  transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+.order-card:hover {
+  box-shadow: var(--db-shadow);
+}
+
+/* ── Status pill (used for order/deficiency status + exception badges) ──── */
+.db-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.db-status-pill--warning { background: var(--db-warning-bg); color: var(--db-warning); }
+.db-status-pill--success { background: var(--db-success-bg); color: var(--db-success); }
+.db-status-pill--danger  { background: var(--db-danger-bg);  color: var(--db-danger); }
+.db-status-pill--info    { background: #eaf6ff; color: var(--db-brand-dark); }
+
+/* ── Content cards (order details, and any other "sectioned page" layout) ── */
+.db-card {
+  background: var(--db-surface);
+  border: 1px solid var(--db-border);
+  border-radius: var(--db-radius);
+  box-shadow: var(--db-shadow-sm);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+.db-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--db-brand-dark);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--db-border);
+}
+.db-field-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px 24px;
+}
+@media (max-width: 700px) {
+  .db-field-grid { grid-template-columns: 1fr; }
+}
+.db-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.db-field-icon {
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: var(--db-radius-sm);
+  background: var(--db-bg);
+  color: var(--db-brand-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.db-field-label {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--db-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.db-field-value {
+  display: block;
+  font-weight: 700;
+  color: var(--db-ink);
+  word-break: break-word;
+}
+.db-field-value--mono {
+  font-family: var(--db-font-mono);
+  font-weight: 500;
+  font-size: 0.85rem;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   global_mobile_fix.css
+   Add ONE import at the top of your src/index.css or src/App.css:
+       @import './global_mobile_fix.css';
+
+   This file has no visual side effects on desktop (> 768px).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. Kill horizontal scroll & the white right-side gap ─────────────────
+   The gap is Bootstrap's container padding bleeding out on mobile.
+   Locking overflow-x on html/body stops any element from creating
+   a horizontal scrollbar that makes the right side look "wider".           */
+html,
+body {
+  overflow-x: hidden;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+/* ── 2. Remove Bootstrap container padding on mobile ──────────────────────
+   .container / .container-fluid add padding-x (15px in BS4, ~12px in BS5)
+   on all screen sizes.  On mobile these create the visible side gaps.
+   We remove them only on screens ≤ 768px so desktop layout is untouched.  */
+@media (max-width: 768px) {
+  .container,
+  .container-fluid,
+  .container-sm,
+  .container-md,
+  .container-lg,
+  .container-xl {
+    padding-right: 0 !important;
+    padding-left:  0 !important;
+  }
+}
+
+/* ── 3. Revert carousel / section content back to a comfortable 12px gutter
+   Without any container padding, text content sits flush against the edge.
+   We add a small 12px padding to the main content blocks so text breathes,
+   while keeping the carousel images fully edge-to-edge.                    */
+@media (max-width: 768px) {
+  /* Product carousel section title — keep left-border accent visible */
+  .ProductsPromoAnnouncement {
+    padding-right: 12px !important;
+    padding-left:  12px !important;
+  }
+
+  /* "See all" link row */
+  .carsl-see-all {
+    padding-right: 12px;
+    padding-left:  12px;
+  }
+
+  /* Product detail info padding */
+  .pd-secondary,
+  .pd-reviews {
+    padding-right: 12px !important;
+    padding-left:  12px !important;
+  }
+}

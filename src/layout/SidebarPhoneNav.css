@@ -1,0 +1,237 @@
+.db-sidebar-phone-header{
+    position: fixed;
+    top:0px;
+    /* FIX: "left/right: auto" (the default) + "width:100%" resolves a fixed
+       element's *static* position based on the page's writing direction —
+       combined with the page's vertical scrollbar (which sits on opposite
+       sides in RTL vs LTR), this header ended up shifted ~12px off one
+       edge of the screen in RTL and the other edge in LTR. Pinning both
+       edges explicitly anchors it to the real viewport regardless of
+       scrollbar side/direction. */
+    left: 0;
+    right: 0;
+    z-index: 100000000;
+    height: 64px;
+    background: var(--db-surface);
+    box-shadow: var(--db-shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+}
+
+
+.sideBarIcon {
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+/* FIX: the three lines used to be positioned by flex `justify-content:
+   space-around` — when the middle line is hidden (display:none) to form
+   the "X", the remaining two lines get redistributed for a 2-item flex
+   row instead of 3, shifting their base position. Combined with the
+   fixed translateY(±8px) offsets (tuned for the old 3-item base), the two
+   diagonal strokes ended up crossing ~4px apart instead of at the same
+   point, i.e. a visibly crooked "X". Positioning all three lines with
+   `position:absolute` and an explicit `top` means hiding one can never
+   move the other two, and both active lines now rotate around the exact
+   same center point — a mathematically guaranteed symmetric X. */
+.db-hamburger {
+    position: relative;
+    width: 26px;
+    height: 18px;
+}
+.db-sideBarIconLine1,
+.db-sideBarIconLine2,
+.db-sideBarIconLine3{
+    position: absolute;
+    left: 0;
+    width: 26px;
+    height: 3px;
+    background-color: var(--db-brand);
+    border-radius: 5px;
+    transition: transform 0.3s ease, opacity 0.3s ease, background-color 0.3s ease;
+}
+.db-sideBarIconLine1 { top: 0; }
+.db-sideBarIconLine2 { top: 7.5px; }
+.db-sideBarIconLine3 { top: 15px; }
+
+.db-sideBarIconLine2.active{
+    opacity: 0;
+}
+.db-sideBarIconLine1.active{
+    top: 7.5px;
+    transform: rotate(45deg);
+    background-color: var(--db-danger);
+}
+.db-sideBarIconLine3.active{
+    top: 7.5px;
+    transform: rotate(-45deg);
+    background-color: var(--db-danger);
+}
+
+
+.db-lang-icon-div{
+    position: relative;
+    width: 50px;
+    flex-direction: column;
+    text-align: center;
+    cursor: pointer;
+    margin: 0 5.5px;
+    /* FIX: tightens the gap between the globe icon and the language label
+       — previously relied on the text's inherited line-height for spacing,
+       which left more air between them than intended. */
+    gap: 1px;
+}
+.db-lang-icon{
+    width: 22px;
+    height: 22px;
+    color: var(--db-brand);
+}
+.db-lang-icon-text{
+    line-height: 1;
+}
+
+/* FIX: this used to animate `width` from 0% up to min(78%,320px) — since
+   the panel's own content (icon + label rows with justify-content:
+   space-between) only reflows to fit whatever width it's GIVEN at each
+   animation frame, the text and icons visibly crushed/overlapped each
+   other while shrinking, right before the menu fully closed. The panel now
+   stays at its full target width at all times and instead slides fully
+   off-screen via `transform`, so its internal layout never has to
+   reflow — only its position moves. */
+.db-header-navbar{
+    position:absolute;
+    width:min(78%, 320px);
+    /* FIX: was max-height, which only caps the panel — when the menu's own
+       content (profile card + nav items) is shorter than the available
+       space, the white panel stopped short of the screen's bottom edge,
+       leaving the darker backdrop visible below the last item as a stray
+       "empty" strip. A fixed height makes the panel always fill the full
+       space from the header down to the bottom of the screen, regardless
+       of content length; overflow-y:auto still scrolls internally if
+       content ever exceeds it. */
+    height: calc(100dvh - 64px);
+    background-color: var(--db-surface);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+    top: 64px;
+    box-shadow: var(--db-shadow-lg);
+    z-index: 1000000;
+    transform: translateX(-100%);
+    /* off-screen while closed shouldn't still be clickable/tabbable */
+    pointer-events: none;
+}
+.db-header-navbar.rtl{
+    transform: translateX(100%);
+}
+.db-header-navbar.active{
+    transform: translateX(0);
+    pointer-events: auto;
+}
+
+
+.db-header-sidebar h5, .db-header-sidebar-rtl h5{
+    color: var(--db-ink);
+    font-weight: 800;
+}
+
+.db-header-sidebar-list , .db-header-sidebar-rtl {
+    list-style-type: none;
+    padding: 6px 10px;
+    width: 100%;
+    height: auto;
+    font-size: 0.88rem;
+    font-weight: 600;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.db-header-sidebar-list li, .db-header-sidebar-rtl li {
+    padding: 0 14px;
+    cursor: pointer;
+    height: 46px;
+    border-radius: var(--db-radius-sm);
+    transition: background 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--db-ink-soft);
+ }
+
+.db-header-sidebar-list li:hover {
+    background-color: var(--db-bg);
+    color: var(--db-ink);
+}
+
+.DbIsClicked{
+    background-color: #e5f4fd !important;
+    color: #0782ce !important;
+    font-weight: 700;
+}
+
+/* FIX: the profile card + generously-margined nav items (my-3 == 32px
+   combined per row) together pushed the primary sections (Orders, Product
+   management) and everything below them far enough down that reaching
+   them — let alone Statistics/Newsletter/Settings/Sign out — required
+   real scrolling on ordinary phone screens. Tightened here; the nav
+   item margins are tightened at their JSX class (my-3 → my-1). */
+.db-header-sidebar-user {
+    padding: 12px 12px 8px;
+    border-bottom: 1px solid var(--db-border);
+    margin-bottom: 4px;
+}
+.db-header-sidebar-user .db-user-name {
+    margin: 1px 0;
+    font-size: 0.82rem;
+}
+
+.db-user-image{
+    width:44px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--db-border);
+    margin-bottom: 2px;
+}
+
+
+/* FIX: this used to animate `width` from 0% to 100% (0.2s) while the nav
+   panel independently slides in via `transform` over 0.3s, covering a
+   different distance (390px vs the nav's 304px). Two independently-timed
+   animations with different durations and distances don't stay in lockstep
+   frame-to-frame — during the opening transition there were moments where
+   the backdrop's growing edge hadn't yet caught up to the nav panel's
+   still-arriving edge, briefly exposing a strip of plain page background
+   between them ("a little empty space"). The backdrop now spans the full
+   width at all times and only fades via `opacity`, so it structurally
+   covers the entire area from the very first frame — no race possible. */
+.db-voidSectionSideBarReducer{
+    left: 0;
+    right: 0;
+    height: 100dvh;
+    position: absolute;
+    top:64px;
+    background: rgba(10, 28, 39, 0.55);
+    backdrop-filter: blur(2px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+}
+.db-voidSectionSideBarReducer.active{
+    opacity: 1;
+    pointer-events: auto;
+}
+
+
+.icon1{
+    max-height: 44px;
+    max-width: 160px;
+    width: auto;
+    height: auto;
+}

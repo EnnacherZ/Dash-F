@@ -1,0 +1,6 @@
+/* Shared .db-deficiency / .db-deficiency.rtl page-shell rules now live in
+   index.css (deduped — this file previously repeated them byte-for-byte). */
+.deficiencies-table{
+    width:100%;
+    font-size: 1em;
+}

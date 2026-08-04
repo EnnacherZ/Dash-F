@@ -1,0 +1,260 @@
+/* ── Desktop sidebar ─────────────────────────────────────────────────────── */
+.db-sidebar-rtl {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 232px;
+    height: 100vh;
+    padding: 12px;
+    overflow-y: auto;
+    background: var(--db-surface);
+    border-left: 1px solid var(--db-border);
+    z-index: 1000;
+}
+.db-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 232px;
+    height: 100vh;
+    padding: 12px;
+    overflow-y: auto;
+    background: var(--db-surface);
+    border-right: 1px solid var(--db-border);
+    z-index: 1000;
+}
+
+.db-sidebar-header-rtl {
+    position: fixed;
+    width: 232px;
+    top: 0;
+    right: 0;
+    background-color: var(--db-surface);
+    padding: 4px 12px 12px;
+    border-bottom: 1px solid var(--db-border);
+    z-index: 1001;
+}
+.db-sidebar-header {
+    position: fixed;
+    width: 232px;
+    top: 0;
+    left: 0;
+    background-color: var(--db-surface);
+    padding: 4px 12px 12px;
+    border-bottom: 1px solid var(--db-border);
+    z-index: 1001;
+}
+.db-sidebar-list,
+.db-sidebar-list.rtl {
+    margin-top: 100px;
+}
+
+.db-sidebar h5,
+.db-sidebar-rtl h5 {
+    color: var(--db-ink);
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.db-sidebar ul,
+.db-sidebar-rtl ul {
+    list-style-type: none;
+    padding: 0;
+    width: 100%;
+    /* FIX: needs a real height (not "auto") for the margin-top:auto on
+       .db-statistics-btn below to have any free space to push into —
+       without it, "auto" margins collapse to 0 in a flex column. This is
+       what pins Statistics/Newsletter/Settings/Sign out to the bottom of
+       the sidebar instead of sitting right under the main nav items. */
+    height: calc(100vh - 124px);
+    font-size: 0.88rem;
+    font-weight: 600;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.db-sidebar li,
+.db-sidebar-rtl li {
+    padding: 0 14px;
+    cursor: pointer;
+    height: 46px;
+    border-radius: var(--db-radius-sm);
+    transition: background 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--db-ink-soft);
+}
+
+.db-sidebar-list li:hover {
+    background-color: var(--db-bg);
+    color: var(--db-ink);
+}
+
+/* ── Logo — FIX: was growing on phone because no max-width was set ───────── */
+.db-sidebar-logo {
+    width: 100%;
+    height: 55px;
+    display: flex;
+    justify-content: center;
+    will-change: filter;
+    transition: filter 1s;
+}
+.db-sidebar-logo:hover {
+    filter: drop-shadow(0 0 1em var(--db-brand));
+}
+.db-sidebar-logo img {
+    width: 50px;
+    max-width: 50px;   /* FIX: prevents logo from expanding on phone */
+    aspect-ratio: 1;
+    object-fit: contain;
+}
+
+/* ── Utility section divider ──────────────────────────────────────────────
+   Statistics/Newsletter/Settings sit visually apart from the primary nav
+   items above them (Home/Orders/Deficiency/ProductManager), and Sign out
+   sits apart again.
+   FIX: the divider gap used to be made with `padding-top:16px !important`
+   on a *fixed* height:46px box — with box-sizing:border-box that squeezes
+   the actual content area down to 30px and, since the extra 16px only sits
+   on top (bottom padding stayed 0), the icon+label ended up centered inside
+   that squeezed area instead of the row itself, i.e. visibly pushed toward
+   the bottom edge. The gap now lives entirely in margin-top (outside the
+   box), so every action row keeps the exact same content-box height/padding
+   as the others and centers identically; the divider line is drawn floating
+   in that margin with a negative top offset instead.
+
+   FIX: margin-top is `auto` on the desktop sidebar instead of a fixed
+   24px — in that flex column (which has a real height), an auto top-margin
+   absorbs all the leftover vertical space and pushes this item (and
+   everything after it) down to the bottom of the sidebar, however many
+   primary nav items sit above it. The divider still floats 12px above the
+   button via the same negative offset, wherever that ends up.
+   FIX: needs !important — the JSX also carries Bootstrap's `my-2` utility
+   class on this same element, which sets margin-top/bottom with its own
+   !important and was silently winning over this rule regardless of
+   selector specificity, so "auto" was never actually taking effect.
+
+   This same class name/markup is also reused by the mobile off-canvas menu
+   (SidebarPhoneNav.tsx), which is a short dropdown list, not a persistent
+   full-height sidebar — "push to the bottom" doesn't apply there, so the
+   auto-margin push is scoped to the desktop list specifically, with a
+   plain fixed gap for the mobile one instead. */
+.db-statistics-btn {
+    position: relative;
+}
+.db-sidebar-list .db-statistics-btn {
+    margin-top: auto !important;
+}
+.db-header-sidebar-list .db-statistics-btn {
+    margin-top: 12px !important;
+}
+.db-statistics-btn::before {
+    content: "";
+    position: absolute;
+    top: -12px;
+    left: 14px;
+    right: 14px;
+    height: 1px;
+    background: var(--db-border);
+}
+.db-signout {
+    margin-top: 8px;
+}
+
+/* ── Action items (Statistics / Newsletter / Settings / Sign out) ─────────
+   Same shape, weight and neutral text/hover as the primary nav items above
+   them — they read as "part of the same list", not four unrelated colored
+   buttons. Each keeps its own identity through a small tinted icon chip
+   (matching the icon-chip language already used for the overview stat
+   cards / order-detail fields elsewhere in the dashboard). */
+.db-sidebar-action {
+    width: 100%;
+    height: 46px;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    border-radius: var(--db-radius-sm);
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--db-ink-soft);
+    background: transparent;
+    transition: background 0.15s ease, color 0.15s ease;
+    cursor: pointer;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.db-sidebar-action:hover {
+    background: var(--db-bg);
+    color: var(--db-ink);
+}
+
+.db-sidebar-action-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: var(--db-radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.db-sidebar-action-icon svg { width: 15px !important; height: 15px !important; }
+
+.db-sidebar-action-icon--stats      { background: rgba(158,46,232,0.12);  color: #9E2EE8; }
+.db-sidebar-action-icon--newsletter { background: rgba(13,148,136,0.12);  color: #0d9488; }
+.db-sidebar-action-icon--settings   { background: rgba(14,146,228,0.12);  color: var(--db-brand-dark); }
+.db-sidebar-action-icon--signout    { background: var(--db-danger-bg);   color: var(--db-danger); }
+
+/* Each action's hover now echoes its own icon accent instead of a flat
+   neutral gray, the way Sign out's red hover already did. */
+.db-statistics-btn:hover {
+    background: rgba(158,46,232,0.08);
+    color: #9E2EE8;
+}
+.db-newsletter-btn:hover {
+    background: rgba(13,148,136,0.08);
+    color: #0d9488;
+}
+.db-settings-btn:hover {
+    background: rgba(14,146,228,0.08);
+    color: var(--db-brand-dark);
+}
+.db-signout:hover {
+    background: var(--db-danger-bg);
+    color: var(--db-danger);
+}
+
+.DbIsClicked {
+    background-color: #e5f4fd !important;
+    color: #0782ce !important;
+    font-weight: 700;
+}
+
+.sidebar-lang {
+    background: transparent;
+    width: 100%;
+    border: none;
+    outline: none;
+    font-weight: 600;
+    color: var(--db-ink);
+}
+
+/* ── Scrollbar ───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 8px;
+}
+::-webkit-scrollbar-thumb {
+    background-color: #c7dff3;
+    border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--db-brand);
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}

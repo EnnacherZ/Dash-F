@@ -1,0 +1,84 @@
+.db-header{
+    width: 100%;
+    margin: 0;
+    padding: 16px 4px 4px;
+}
+/* FIX: was a hardcoded inline marginTop:80 sized for the old 70px phone
+   header — now that SidebarHeader.css's fixed header is 64px, this stays
+   in sync with it from one place instead of two components silently
+   needing to agree on the same magic number. */
+.db-header--phone {
+    margin-top: 76px;
+}
+.db-home-overview {
+    color: var(--db-ink);
+}
+.db-notConfirmed{
+    width: 300px;
+    max-width: 100%;   /* FIX: fixed 300px could overflow narrow (<332px) phones */
+    min-height: 78px;
+    background-color: var(--db-surface);
+    border: 1px solid var(--db-border) !important;
+    border-radius: var(--db-radius);
+    font-size: .9rem;
+    box-shadow: var(--db-shadow-sm);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    padding: 10px 14px !important;
+}
+@media (max-width: 700px) {
+    .db-notConfirmed {
+        width: 100%;
+    }
+}
+.db-notConfirmed:hover {
+    box-shadow: var(--db-shadow);
+    transform: translateY(-1px);
+}
+.db-notConfirmed-lg{
+    width: 52px;
+    height: 52px;
+    aspect-ratio: 1;
+    background-color: var(--db-danger-bg);
+    border-radius: var(--db-radius-sm) !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+.db-notConfirmed-lg svg { width: 26px !important; height: 26px !important; padding: 0 !important; }
+
+.db-notConfirmed.null{
+    border-color: var(--db-border) !important;
+}
+.db-notConfirmed-lg.null{
+    background-color: var(--db-warning-bg);
+}
+
+/* ── Loading state: neutral styling + spinner instead of a misleading "0" ── */
+.db-notConfirmed.db-notConfirmed--loading{
+    border-color: var(--db-border) !important;
+}
+.db-notConfirmed-lg.db-notConfirmed--loading{
+    background-color: var(--db-bg);
+}
+.db-stat-value{
+    display: inline-flex;
+    align-items: center;
+    min-height: 20px;
+}
+
+/* ── Positive/neutral metrics (revenue, AOV, delivered, waiting delivery):
+   unlike notConfirmed orders / deficiencies, a higher number here isn't bad,
+   so these keep a fixed accent instead of the warning/danger swap. ────────── */
+.db-notConfirmed.db-notConfirmed--brand{
+    border-color: var(--db-border) !important;
+}
+.db-notConfirmed-lg.db-notConfirmed--brand{
+    background-color: rgba(14,146,228,0.12);
+}
+.db-notConfirmed.db-notConfirmed--success{
+    border-color: var(--db-border) !important;
+}
+.db-notConfirmed-lg.db-notConfirmed--success{
+    background-color: var(--db-success-bg);
+}

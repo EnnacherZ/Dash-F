@@ -1,0 +1,220 @@
+/**
+ * dashboard/pages/Orders.tsx
+ *
+ * FIXES:
+ *  - Section heading for waitingDeliveryOrders was t('admin.orders.delivered')
+ *    (duplicate). Changed to t('admin.orders.waitingDelivery').
+ *  - "All orders" empty state was using t('admin.orders.noRemaining') — changed
+ *    to t('admin.orders.noOrders').
+ *  - error state from useOrders is now surfaced as an alert banner.
+ *  - loading state used per-section so each section shows its own spinner.
+ *  - addEventListener/removeEventListener both use window explicitly.
+ *  - isDeficiencyModal (unused here) removed. isOrdModal initialised to false.
+ */
+import React, { useEffect, useState } from "react";
+import Sidebar from "@/layout/Sidebar";
+import { useLangContext } from "../contexts/LanguageContext";
+import DbHeader from "@/layout/DbHeader";
+import { FaWpforms } from "react-icons/fa6";
+import { useTranslation } from "react-i18next";
+import { useOrders } from "../server/orders";
+import { IoWarning } from "react-icons/io5";
+import { MdOutlineFileDownloadDone } from "react-icons/md";
+import { ToastContainer } from "react-toastify";
+import EmptyState from "../components/EmptyState";
+import { AnimatePresence } from "framer-motion";
+import { goToNewBlank } from "@/utils/navigation";
+import { selectedLang } from "@/utils/i18n";
+import { showDesktopTable, showPhoneTable } from "@/components/tables/OrdersTable";
+import Loading from "../components/loading";
+
+const Orders: React.FC = () => {
+  const { t } = useTranslation();
+  const { currentLang } = useLangContext();
+  const {
+    remainingOrders,
+    allOrders,
+    deliveredOrders,
+    waitingDeliveryOrders,
+    loading,
+    error,
+  } = useOrders();
+
+  const [isExpanded, setIsExpanded] = useState<{
+    remaining: boolean;
+    delivered: boolean;
+    all: boolean;
+    waitingDelivery: boolean;
+  }>({ waitingDelivery: false, remaining: false, delivered: false, all: false });
+
+  const [isPhoneTable,  setIsPhoneTable]  = useState<boolean>(false);
+
+  useEffect(() => {
+    // FIX: use window.addEventListener consistently (not bare addEventListener)
+    const handleResize = () => setIsPhoneTable(window.innerWidth <= 650);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  const orderExceptions = [
+    <IoWarning color="red" size={25} />,
+    <MdOutlineFileDownloadDone color="green" size={25} />,
+  ];
+  const orderStatus = [
+    <span className="db-status-pill db-status-pill--warning">{t("admin.orders.waiting")}</span>,
+    <span className="db-status-pill db-status-pill--success">{t("admin.orders.done")}</span>,
+  ];
+
+  const toggleExpand = (key: string) => {
+    setIsExpanded((prev) => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
+  };
+
+  const processOrder = (ord: any) => {
+    goToNewBlank(`/OrderDetails/${ord.order_id}`)
+    
+  };
+
+  // ── Error banner ────────────────────────────────────────────────────────────
+  if (error) {
+    return (
+      <>
+        <Sidebar />
+        <div className={`db-deficiency ${selectedLang(currentLang) === "ar" && "rtl"}`}>
+          <DbHeader />
+          <div className="alert alert-danger m-3" role="alert">
+            {error}
+          </div>
+        </div>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Sidebar />
+      <div className={`db-deficiency ${selectedLang(currentLang) === "ar" && "rtl"}`}>
+        <DbHeader />
+        <hr />
+
+        {/* ── Remaining orders ─────────────────────────────────────────── */}
+        <div className="fw-bold my-4">
+          <FaWpforms className="me-3" size={20} />
+          {t("admin.orders.remaining")}
+        </div>
+        {loading ? (
+          <Loading message={t("ui.loading")} />
+        ) : remainingOrders.length > 0 ? (
+          <>
+            {isPhoneTable
+              ? showPhoneTable(remainingOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.remaining)
+              : showDesktopTable(remainingOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.remaining, selectedLang(currentLang))}
+            {remainingOrders.length > 3 && (
+              <div className="orders-expansion text-center m-1 d-flex justify-content-center">
+                <button className="btn btn-outline-primary" onClick={() => toggleExpand("remaining")}>
+                  {!isExpanded.remaining
+                    ? `${t("product.readMore")} (+ ${remainingOrders.length - 3})`
+                    : t("product.readLess")}
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <EmptyState message={t("admin.orders.noRemaining")} />
+        )}
+
+        <hr />
+
+        {/* ── Waiting for delivery ─────────────────────────────────────── */}
+        <div className="fw-bold my-3">
+          <FaWpforms className="me-3" size={20} />
+          {/* FIX: was t('admin.orders.delivered') — wrong duplicate label */}
+          {t("admin.orders.waitingDelivery")}
+        </div>
+        {loading ? (
+          <Loading message={t("ui.loading")} />
+        ) : waitingDeliveryOrders.length > 0 ? (
+          <>
+            {isPhoneTable
+              ? showPhoneTable(waitingDeliveryOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.waitingDelivery)
+              : showDesktopTable(waitingDeliveryOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.waitingDelivery, selectedLang(currentLang))}
+            {waitingDeliveryOrders.length > 3 && (
+              <div className="orders-expansion text-center m-1 d-flex justify-content-center">
+                <button className="btn btn-outline-primary" onClick={() => toggleExpand("waitingDelivery")}>
+                  {!isExpanded.waitingDelivery
+                    ? `${t("product.readMore")} (+ ${waitingDeliveryOrders.length - 3})`
+                    : t("product.readLess")}
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <EmptyState message={t("admin.orders.noWaitingDelivery")} />
+        )}
+
+        <hr />
+
+        {/* ── Delivered orders ─────────────────────────────────────────── */}
+        <div className="fw-bold my-3">
+          <FaWpforms className="me-3" size={20} />
+          {t("admin.orders.delivered")}
+        </div>
+        {loading ? (
+          <Loading message={t("ui.loading")} />
+        ) : deliveredOrders.length > 0 ? (
+          <>
+            {isPhoneTable
+              ? showPhoneTable(deliveredOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.delivered)
+              : showDesktopTable(deliveredOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.delivered, selectedLang(currentLang))}
+            {deliveredOrders.length > 3 && (
+              <div className="orders-expansion text-center m-1 d-flex justify-content-center">
+                <button className="btn btn-outline-primary" onClick={() => toggleExpand("delivered")}>
+                  {!isExpanded.delivered
+                    ? `${t("product.readMore")} (+ ${deliveredOrders.length - 3})`
+                    : t("product.readLess")}
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <EmptyState message={t("admin.orders.noDelivered")} />
+        )}
+
+        <hr />
+
+        {/* ── All orders ───────────────────────────────────────────────── */}
+        <div className="fw-bold my-3">
+          <FaWpforms className="me-3" size={20} />
+          {t("admin.orders.all")}
+        </div>
+        {loading ? (
+          <Loading message={t("ui.loading")} />
+        ) : allOrders.length > 0 ? (
+          <>
+            {isPhoneTable
+              ? showPhoneTable(allOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.all)
+              : showDesktopTable(allOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.all, selectedLang(currentLang))}
+            {allOrders.length > 3 && (
+              <div className="orders-expansion text-center m-1 d-flex justify-content-center">
+                <button className="btn btn-outline-primary" onClick={() => toggleExpand("all")}>
+                  {!isExpanded.all
+                    ? `${t("product.readMore")} (+ ${allOrders.length - 3})`
+                    : t("product.readLess")}
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          // FIX: was t('admin.orders.noRemaining') — wrong key for this section
+          <EmptyState message={t("admin.orders.noOrders")} />
+        )}
+      </div>
+
+      <AnimatePresence mode="wait">
+      </AnimatePresence>
+      <ToastContainer />
+    </>
+  );
+};
+
+export default Orders;

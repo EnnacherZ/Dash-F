@@ -1,0 +1,59 @@
+
+/* Shared .db-order-details page-shell rules now live in index.css
+   (deduped — this file previously repeated them byte-for-byte). */
+
+.od-page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 4px 4px 18px;
+}
+
+.od-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 10px;
+    margin: 24px 4px;
+}
+
+@media (max-width: 600px) {
+    .od-actions {
+        justify-content: stretch;
+    }
+    .od-actions .btn {
+        flex: 1 1 auto;
+        text-align: center;
+    }
+}
+
+.od-delivery-picker {
+    max-width: 460px;
+}
+.od-delivery-picker-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.od-delivery-picker-row > div:first-child {
+    flex: 1 1 220px;
+    min-width: 200px;
+}
+.od-delivery-picker-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+@media (max-width: 500px) {
+    .od-delivery-picker-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .od-delivery-picker-actions .btn {
+        flex: 1;
+    }
+}
