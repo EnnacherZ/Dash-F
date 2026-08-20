@@ -17,7 +17,7 @@ const ProductForm: React.FC = () => {
     const { productTypes = [], categories = {} } = useParametersContext();
 
     const [productType, setProductType] = useState<string>('');
-    const [ref, setRef] = useState<number>(0);
+    const [ref, setRef] = useState<string>('');
     const [name, setName] = useState<string>('');
     const [category, setCategory] = useState<string>('');
     const [price, setPrice] = useState<number>(0);
@@ -72,7 +72,7 @@ const ProductForm: React.FC = () => {
         const formData = new FormData();
         formData.append('name', name);
         formData.append('category', category);
-        formData.append('ref', ref.toString());
+        if (ref.trim()) { formData.append('ref', ref.trim()); }
         formData.append('price', price.toString());
         formData.append('newest', newest ? 'true' : 'false');
         formData.append('promo', promo.toString());
@@ -123,8 +123,16 @@ const ProductForm: React.FC = () => {
                 </div>
                 <div className="pm-field-row">
                     <div className="mb-3">
-                        <label className="form-label">{t('product.ref')} :</label>
-                        <input type="number" className="form-control" value={ref} onChange={(e) => setRef(Number(e.target.value) || 0)} required/>
+                        <label className="form-label">
+                            {t('product.ref')} <span className="text-muted">({t('form.optional')})</span> :
+                        </label>
+                        <input
+                            type="text"
+                            className="form-control"
+                            value={ref}
+                            onChange={(e) => setRef(e.target.value)}
+                            placeholder={t('admin.product.refDefaultHint')}
+                        />
                     </div>
                     <div className="mb-3">
                         <label className="form-label">{t('product.name')} :</label>

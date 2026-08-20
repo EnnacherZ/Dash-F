@@ -45,6 +45,7 @@ export default {
             sandal: 'Sandals',
             shirt: 'Shirts',
             pant: 'Pants',
+            cap: 'Caps',
           },
 
           cart: {
@@ -190,6 +191,7 @@ export default {
           },
 
           form: {
+            optional: 'optional',
             firstName: { label: 'First name', required: 'Your first name is required' },
             lastName:  { label: 'Last name',  required: 'Your last name is required'  },
             fullName: 'Full name',
@@ -342,6 +344,11 @@ export default {
               deliveryManUpdated: 'Delivery man updated successfully.',
               deliveryManUpdateFailed: 'Failed to update the delivery man. Please try again.',
               noDeliveryMen: 'No delivery man found. Add one from Settings first.',
+              delete: 'Delete order',
+              deleteTitle: 'Remove this order?',
+              deleteWarning: 'This order will be removed from dashboard lists. Its record and inventory history remain safely preserved.',
+              deleteSuccess: 'Order removed from the dashboard.',
+              deleteFailed: 'Unable to remove the order. Please try again.',
             },
             deficiency: {
               title:             "Quantity's deficiency",
@@ -394,6 +401,18 @@ export default {
               tooManyImages:    'You can upload a maximum of 4 images.',
               fillOneField:     'Please fill in at least one field.',
               checkFields:      'Please check the following field(s): {{fields}}',
+              refDefaultHint:   'Leave blank to use the backend default',
+              existingTypes:    'Existing product types',
+              existingCategories: 'Existing categories',
+              deleteTypeTitle:  'Delete this product type?',
+              deleteTypeWarning: 'Only product types that are not used by products can be deleted.',
+              deleteCategoryTitle: 'Delete this category?',
+              deleteCategoryWarning: 'Only categories that are not used by products can be deleted.',
+              typeDeleted:      'Product type deleted.',
+              categoryDeleted:  'Category deleted.',
+              typeInUse:        'This product type is used by existing products and cannot be deleted.',
+              categoryInUse:    'This category is used by existing products and cannot be deleted.',
+              taxonomyAdded:    'Product settings updated.',
             },
             overview: { general: 'General overview', notDeveloped: 'Not developed yet', revenueThisMonth: 'Revenue this month', avgOrderValue: 'Average order value' },
             users: {

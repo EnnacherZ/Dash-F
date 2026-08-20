@@ -14,6 +14,9 @@ import { usersRoles } from "@/constants/roles";
 import { wait } from "@/utils/general";
 import { useParametersContext } from "../contexts/ParametersContext";
 import { useAuth } from "../contexts/Authentication";
+import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
+import { FaTrash } from "react-icons/fa6";
+import { isAxiosError } from "axios";
 
 const connecter = apiInstance;
 
@@ -21,9 +24,6 @@ const Settings : React.FC = () => {
     const {t} = useTranslation();
     const {user} = useAuth();
     const {currentLang} = useLangContext();
-    const {productTypes} = useParametersContext();
-
-
     return(<>
         <Sidebar/>
         <div className={`db-settings ${selectedLang(currentLang)=='ar'&&'rtl'}`}>
@@ -37,7 +37,7 @@ const Settings : React.FC = () => {
                     <ProductTypes/>
                 </Accordion.Item>
                 <Accordion.Item eventKey="1" className="my-3 rounded card shadow">
-                    <ProductParameters productType={productTypes ? productTypes : [""]} param="categories"/>
+                    <ProductParameters param="categories"/>
                 </Accordion.Item>
 
                 {user?.role == 'admin' ? <>
@@ -59,11 +59,16 @@ const Settings : React.FC = () => {
 }
 
 
-const ProductParameters : React.FC<{productType:string[], param:string}> = ({productType, param}) => {
+const ProductParameters : React.FC<{param:string}> = ({param}) => {
     const {t} = useTranslation();
+    const {productTypes = [], categories = {}, refetchParameters} = useParametersContext();
     const capitalize = (str:string) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     const [valuesText, setValuesText] = useState("");
-    const [selectedType, setSelectedType] = useState<string>();
+    const [selectedType, setSelectedType] = useState<string>("");
+    const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const selectedCategories: string[] = selectedType ? (categories?.[selectedType] ?? []) : [];
 
     const handlePostParameters = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -85,10 +90,34 @@ const ProductParameters : React.FC<{productType:string[], param:string}> = ({pro
                 const response = await connecter.post("db/products/parameters/add", {
                     productType: selectedType, param: param, values: values
                 })
-                if(response.status == 201){ window.location.reload() }
+                if(response.status == 201){
+                    setValuesText("");
+                    await refetchParameters();
+                    showToast(t('admin.product.taxonomyAdded'), "success");
+                }
             }
         } catch {
             showToast(t('admin.product.addFailed'), "error");
+        }
+    };
+
+    const handleDeleteCategory = async () => {
+        if (!selectedType || !categoryToDelete) return;
+        setIsDeleting(true);
+        try {
+            await connecter.delete("db/products/categories/delete", {
+                data: { productType: selectedType, name: categoryToDelete },
+            });
+            await refetchParameters();
+            showToast(t('admin.product.categoryDeleted'), "success");
+            setCategoryToDelete(null);
+        } catch (error: unknown) {
+            const message = isAxiosError(error) && error.response?.status === 409
+                ? t('admin.product.categoryInUse')
+                : t('admin.product.actionFailed');
+            showToast(message, "error");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -98,10 +127,10 @@ const ProductParameters : React.FC<{productType:string[], param:string}> = ({pro
             <form onSubmit={handlePostParameters}>
                 <div className="mb-3">
                     <label htmlFor="ref" className="form-label">{t('product.type')} :</label>
-                    {productType.length > 0 ? (<>
-                        <select className="form-select" onChange={(e) => setSelectedType(e.target.value)}>
-                            <option value={undefined}>{t('admin.product.selectType')} </option>
-                            {productType.map((type, index) => (
+                    {productTypes.length > 0 ? (<>
+                        <select className="form-select" value={selectedType} onChange={(e) => setSelectedType(e.target.value)}>
+                            <option value="">{t('admin.product.selectType')} </option>
+                            {productTypes.map((type, index) => (
                                 <option value={type} key={index}>{t(`productTypes.${type.toLowerCase()}`)}</option>
                             ))}
                         </select>
@@ -115,7 +144,40 @@ const ProductParameters : React.FC<{productType:string[], param:string}> = ({pro
                 </div>
                 <button type="submit" className="btn btn-primary">{t('form.submit')} </button>
             </form>
+            {selectedType && (
+                <div className="taxonomy-list-wrap">
+                    <div className="taxonomy-list-title">{t('admin.product.existingCategories')}</div>
+                    {selectedCategories.length > 0 ? (
+                        <div className="taxonomy-list">
+                            {selectedCategories.map((category) => (
+                                <div className="taxonomy-chip" key={category}>
+                                    <span>{category}</span>
+                                    <button
+                                        type="button"
+                                        className="taxonomy-delete-btn"
+                                        onClick={() => setCategoryToDelete(category)}
+                                        aria-label={`${t('confirm.delete')} ${category}`}
+                                    >
+                                        <FaTrash aria-hidden />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : <p className="text-muted mb-0">{t('admin.product.noCategoryData')}</p>}
+                </div>
+            )}
         </Accordion.Body>
+        <ConfirmDeleteModal
+            open={categoryToDelete !== null}
+            title={t('admin.product.deleteCategoryTitle')}
+            message={t('admin.product.deleteCategoryWarning')}
+            itemLabel={categoryToDelete ?? undefined}
+            confirmLabel={t('confirm.delete')}
+            cancelLabel={t('ui.cancel')}
+            loading={isDeleting}
+            onConfirm={handleDeleteCategory}
+            onClose={() => setCategoryToDelete(null)}
+        />
         <ToastContainer/>
     </>)
 };
@@ -123,16 +185,41 @@ const ProductParameters : React.FC<{productType:string[], param:string}> = ({pro
 
 const ProductTypes : React.FC = () => {
     const {t} = useTranslation();
-    const [productTypes, setProductTypes] = useState("");
+    const {productTypes = [], refetchParameters} = useParametersContext();
+    const [productTypesText, setProductTypesText] = useState("");
+    const [typeToDelete, setTypeToDelete] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handlePostParameters = async (e: React.FormEvent) => {
         e.preventDefault();
-        const values = productTypes.split(",").map((v) => v.trim()).filter((v) => v.length > 0);
+        const values = productTypesText.split(",").map((v) => v.trim()).filter((v) => v.length > 0);
         try {
             const response = await connecter.post("db/products/types/add", { values: values })
-            if(response.status == 201){ window.location.reload() }
+            if(response.status == 201){
+                setProductTypesText("");
+                await refetchParameters();
+                showToast(t('admin.product.taxonomyAdded'), "success");
+            }
         } catch {
             showToast(t('admin.product.addFailed'), "error");
+        }
+    };
+
+    const handleDeleteType = async () => {
+        if (!typeToDelete) return;
+        setIsDeleting(true);
+        try {
+            await connecter.delete("db/products/types/delete", { data: { name: typeToDelete } });
+            await refetchParameters();
+            showToast(t('admin.product.typeDeleted'), "success");
+            setTypeToDelete(null);
+        } catch (error: unknown) {
+            const message = isAxiosError(error) && error.response?.status === 409
+                ? t('admin.product.typeInUse')
+                : t('admin.product.actionFailed');
+            showToast(message, "error");
+        } finally {
+            setIsDeleting(false);
         }
     };
 
@@ -142,11 +229,42 @@ const ProductTypes : React.FC = () => {
             <form onSubmit={handlePostParameters}>
                 <div className="mb-3">
                     <label htmlFor="ref" className="form-label">{t('product.type')} :</label>
-                    <input className="form-control" type="text" value={productTypes} onChange={(e) => setProductTypes(e.target.value)} placeholder="ex: val1, val2, val3" required/>
+                    <input className="form-control" type="text" value={productTypesText} onChange={(e) => setProductTypesText(e.target.value)} placeholder="ex: val1, val2, val3" required/>
                 </div>
                 <button type="submit" className="btn btn-primary">{t('form.submit')} </button>
             </form>
+            <div className="taxonomy-list-wrap">
+                <div className="taxonomy-list-title">{t('admin.product.existingTypes')}</div>
+                {productTypes.length > 0 ? (
+                    <div className="taxonomy-list">
+                        {productTypes.map((type) => (
+                            <div className="taxonomy-chip" key={type}>
+                                <span>{type}</span>
+                                <button
+                                    type="button"
+                                    className="taxonomy-delete-btn"
+                                    onClick={() => setTypeToDelete(type)}
+                                    aria-label={`${t('confirm.delete')} ${type}`}
+                                >
+                                    <FaTrash aria-hidden />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                ) : <p className="text-muted mb-0">{t('admin.product.noTypesYet')}</p>}
+            </div>
         </Accordion.Body>
+        <ConfirmDeleteModal
+            open={typeToDelete !== null}
+            title={t('admin.product.deleteTypeTitle')}
+            message={t('admin.product.deleteTypeWarning')}
+            itemLabel={typeToDelete ?? undefined}
+            confirmLabel={t('confirm.delete')}
+            cancelLabel={t('ui.cancel')}
+            loading={isDeleting}
+            onConfirm={handleDeleteType}
+            onClose={() => setTypeToDelete(null)}
+        />
     </>)
 };
 
@@ -166,7 +284,7 @@ const AddUser = () => {
 
     useEffect(()=>{
         setPasswordMatch(password.trim() === confirmPassword.trim())
-    },[confirmPassword])
+    },[password, confirmPassword])
     useEffect(()=>{
         setPasswordsWritten(password.trim() != "" && confirmPassword.trim() != "")
     }, [password, confirmPassword])

@@ -192,6 +192,33 @@ body{
   box-shadow: var(--db-shadow);
 }
 
+.order-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.order-actions--mobile {
+  width: 100%;
+}
+
+.order-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-width: 38px;
+}
+
+.order-delete-spinner {
+  animation: order-delete-spin 0.8s linear infinite;
+}
+
+@keyframes order-delete-spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Status pill (used for order/deficiency status + exception badges) ──── */
 .db-status-pill {
   display: inline-flex;

@@ -180,6 +180,34 @@
   filter: brightness(1.02);
 }
 
+.confirm-modal--danger .confirm-modal__title {
+  color: var(--db-danger, #dc2626);
+}
+
+.confirm-modal--danger .btn-danger {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  box-shadow: 0 12px 24px rgba(220,38,38,0.24);
+}
+
+.confirm-modal__target {
+  margin-top: 16px;
+  padding: 12px 14px;
+  border: 1px solid #fecaca;
+  border-radius: 12px;
+  background: #fff7f7;
+  color: #991b1b;
+  font-weight: 800;
+  word-break: break-word;
+}
+
+.confirm-modal__spinner {
+  animation: confirm-modal-spin 0.8s linear infinite;
+}
+
+@keyframes confirm-modal-spin {
+  to { transform: rotate(360deg); }
+}
+
 .review-form {
   max-width: 760px;
   margin: 0 auto;

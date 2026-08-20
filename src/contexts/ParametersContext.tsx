@@ -1,4 +1,4 @@
-import React, {useContext, createContext, ReactNode, useEffect, useRef, useState} from "react";
+import React, {useCallback, useContext, createContext, ReactNode, useEffect, useRef, useState} from "react";
 import connecter from "@/lib/api";
 import { Product } from "@/types/product";
 
@@ -6,7 +6,7 @@ import { Product } from "@/types/product";
 
 interface ParametersProps {
     productTypes : Array<string> | undefined
-    categories : any;
+    categories : Record<string, string[]>;
     // FIX: this used to be fetched locally inside ProductOptions.tsx, which
     // unmounts/remounts on every tab switch (Search/Stock/Edit/Delete each
     // render their own <ProductOptions>) — so the full product list (a slow
@@ -17,6 +17,7 @@ interface ParametersProps {
     // per session and shared everywhere.
     productsByType : {[key:string]: Product[]} | undefined;
     productsLoading : boolean;
+    refetchParameters : () => Promise<void>;
 }
 
 
@@ -25,7 +26,7 @@ const ParametersContext = createContext<ParametersProps | undefined>(undefined);
 
 export const ParametersContextProvider : React.FC<{children:ReactNode}> = ({children}) => {
     const [productTypes, setProductTypes] = useState<Array<string>>()
-    const [categories, setCategories] = useState<any>({});
+    const [categories, setCategories] = useState<Record<string, string[]>>({});
     const [productsByType, setProductsByType] = useState<{[key:string]: Product[]}>();
     const [productsLoading, setProductsLoading] = useState<boolean>(true);
 
@@ -34,26 +35,22 @@ export const ParametersContextProvider : React.FC<{children:ReactNode}> = ({chil
     const didFetchParams = useRef(false);
     const didFetchProducts = useRef(false);
 
+    const fetchParameters = useCallback(async () => {
+        try {
+            const response = await connecter.get('db/products/parameters/get');
+            setCategories(response.data.categories || {});
+            setProductTypes(response.data.types || []);
+        } catch (error) {
+            console.error('Failed to load product parameters:', error);
+            throw error;
+        }
+    }, []);
+
     useEffect(()=>{
         if (didFetchParams.current) return;
         didFetchParams.current = true;
-        const getParams = async () => {
-            try{
-                // FIX: the network request itself was previously outside the
-                // try/catch, so a failed request (network error, 401, 500…)
-                // threw an unhandled promise rejection inside useEffect and
-                // silently left productTypes/categories stuck as undefined,
-                // with no error surfaced anywhere.
-                const response = await connecter.get('db/products/parameters/get');
-                setCategories(response.data.categories || undefined);
-                setProductTypes(response.data.types);
-            }catch(error){
-                console.error('Failed to load product parameters:', error);
-            }
-
-        }
-        getParams();
-    },[]);
+        void fetchParameters().catch(() => undefined);
+    },[fetchParameters]);
 
     useEffect(()=>{
         if (didFetchProducts.current) return;
@@ -75,7 +72,7 @@ export const ParametersContextProvider : React.FC<{children:ReactNode}> = ({chil
 
     return(
         <ParametersContext.Provider
-        value={{productTypes, categories, productsByType, productsLoading}}
+        value={{productTypes, categories, productsByType, productsLoading, refetchParameters: fetchParameters}}
 
         >
         {children}

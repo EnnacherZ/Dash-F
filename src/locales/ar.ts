@@ -45,6 +45,7 @@ export default {
             sandal: 'صنادل',
             shirt: 'أقمصة',
             pant: 'سراويل',
+            cap: 'قبعات',
           },
 
           cart: {
@@ -190,6 +191,7 @@ export default {
           },
 
           form: {
+            optional: 'اختياري',
             firstName: { label: 'الاسم',             required: 'الاسم مطلوب'                    },
             lastName:  { label: 'اللقب',             required: 'اللقب مطلوب'                    },
             fullName: 'الاسم الكامل',
@@ -342,6 +344,11 @@ export default {
               deliveryManUpdated: 'تم تحديث عامل التوصيل بنجاح.',
               deliveryManUpdateFailed: 'فشل تحديث عامل التوصيل. يرجى المحاولة مرة أخرى.',
               noDeliveryMen: 'لا يوجد عامل توصيل. أضف واحدًا من الإعدادات أولاً.',
+              delete: 'حذف الطلبية',
+              deleteTitle: 'حذف هذه الطلبية؟',
+              deleteWarning: 'ستُزال الطلبية من قوائم لوحة التحكم مع الاحتفاظ بسجلها وبيانات المخزون بأمان.',
+              deleteSuccess: 'تمت إزالة الطلبية من لوحة التحكم.',
+              deleteFailed: 'تعذّرت إزالة الطلبية. يرجى المحاولة مجدداً.',
             },
             deficiency: {
               title:             'نقص الكميات',
@@ -394,6 +401,18 @@ export default {
               tooManyImages:    'يمكنك تحميل 4 صور كحد أقصى.',
               fillOneField:     'يرجى تعبئة حقل واحد على الأقل.',
               checkFields:      'يرجى التحقق من الحقل (الحقول) التالية: {{fields}}',
+              refDefaultHint:   'اتركه فارغاً لاستخدام القيمة الافتراضية في الخادم',
+              existingTypes:    'أنواع المنتجات الحالية',
+              existingCategories: 'الفئات الحالية',
+              deleteTypeTitle:  'حذف نوع المنتج؟',
+              deleteTypeWarning: 'يمكن حذف أنواع المنتجات غير المستخدمة في أي منتج فقط.',
+              deleteCategoryTitle: 'حذف هذه الفئة؟',
+              deleteCategoryWarning: 'يمكن حذف الفئات غير المستخدمة في أي منتج فقط.',
+              typeDeleted:      'تم حذف نوع المنتج.',
+              categoryDeleted:  'تم حذف الفئة.',
+              typeInUse:        'هذا النوع مستخدم في منتجات حالية ولا يمكن حذفه.',
+              categoryInUse:    'هذه الفئة مستخدمة في منتجات حالية ولا يمكن حذفها.',
+              taxonomyAdded:    'تم تحديث إعدادات المنتجات.',
             },
             overview: { general: 'نظرة عامة', notDeveloped: 'لم يتم تطويره بعد', revenueThisMonth: 'إيرادات هذا الشهر', avgOrderValue: 'متوسط قيمة الطلب' },
             users: {

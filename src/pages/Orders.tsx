@@ -27,10 +27,16 @@ import { goToNewBlank } from "@/utils/navigation";
 import { selectedLang } from "@/utils/i18n";
 import { showDesktopTable, showPhoneTable } from "@/components/tables/OrdersTable";
 import Loading from "../components/loading";
+import apiInstance from "@/lib/api";
+import { showToast } from "@/utils/toast";
+import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
+import { DashboardOrder } from "../server/orders";
+import { useAuth } from "../contexts/Authentication";
 
 const Orders: React.FC = () => {
   const { t } = useTranslation();
   const { currentLang } = useLangContext();
+  const { user } = useAuth();
   const {
     remainingOrders,
     allOrders,
@@ -38,6 +44,7 @@ const Orders: React.FC = () => {
     waitingDeliveryOrders,
     loading,
     error,
+    refetch,
   } = useOrders();
 
   const [isExpanded, setIsExpanded] = useState<{
@@ -48,6 +55,10 @@ const Orders: React.FC = () => {
   }>({ waitingDelivery: false, remaining: false, delivered: false, all: false });
 
   const [isPhoneTable,  setIsPhoneTable]  = useState<boolean>(false);
+  const [orderToDelete, setOrderToDelete] = useState<DashboardOrder | null>(null);
+  const [isDeletingOrder, setIsDeletingOrder] = useState(false);
+  const canDeleteOrders = user?.role === "admin" || user?.role === "manager";
+  const deletingOrderId = isDeletingOrder ? orderToDelete?.id : undefined;
 
   useEffect(() => {
     // FIX: use window.addEventListener consistently (not bare addEventListener)
@@ -70,9 +81,25 @@ const Orders: React.FC = () => {
     setIsExpanded((prev) => ({ ...prev, [key]: !prev[key as keyof typeof prev] }));
   };
 
-  const processOrder = (ord: any) => {
+  const processOrder = (ord: DashboardOrder) => {
     goToNewBlank(`/OrderDetails/${ord.order_id}`)
-    
+  };
+
+  const deleteOrder = async () => {
+    if (!orderToDelete) return;
+    setIsDeletingOrder(true);
+    try {
+      // Dashboard deletion is implemented as a recoverable archive so order
+      // lines, stock accounting, and customer history remain intact.
+      await apiInstance.patch(`db/orders/manager/${orderToDelete.id}/archive/`);
+      showToast(t("admin.orders.deleteSuccess"), "success");
+      setOrderToDelete(null);
+      refetch();
+    } catch {
+      showToast(t("admin.orders.deleteFailed"), "error");
+    } finally {
+      setIsDeletingOrder(false);
+    }
   };
 
   // ── Error banner ────────────────────────────────────────────────────────────
@@ -107,8 +134,8 @@ const Orders: React.FC = () => {
         ) : remainingOrders.length > 0 ? (
           <>
             {isPhoneTable
-              ? showPhoneTable(remainingOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.remaining)
-              : showDesktopTable(remainingOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.remaining, selectedLang(currentLang))}
+              ? showPhoneTable(remainingOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.remaining, canDeleteOrders ? setOrderToDelete : undefined, deletingOrderId)
+              : showDesktopTable(remainingOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.remaining, selectedLang(currentLang), canDeleteOrders ? setOrderToDelete : undefined, deletingOrderId)}
             {remainingOrders.length > 3 && (
               <div className="orders-expansion text-center m-1 d-flex justify-content-center">
                 <button className="btn btn-outline-primary" onClick={() => toggleExpand("remaining")}>
@@ -136,8 +163,8 @@ const Orders: React.FC = () => {
         ) : waitingDeliveryOrders.length > 0 ? (
           <>
             {isPhoneTable
-              ? showPhoneTable(waitingDeliveryOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.waitingDelivery)
-              : showDesktopTable(waitingDeliveryOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.waitingDelivery, selectedLang(currentLang))}
+              ? showPhoneTable(waitingDeliveryOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.waitingDelivery, canDeleteOrders ? setOrderToDelete : undefined, deletingOrderId)
+              : showDesktopTable(waitingDeliveryOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.waitingDelivery, selectedLang(currentLang), canDeleteOrders ? setOrderToDelete : undefined, deletingOrderId)}
             {waitingDeliveryOrders.length > 3 && (
               <div className="orders-expansion text-center m-1 d-flex justify-content-center">
                 <button className="btn btn-outline-primary" onClick={() => toggleExpand("waitingDelivery")}>
@@ -164,8 +191,8 @@ const Orders: React.FC = () => {
         ) : deliveredOrders.length > 0 ? (
           <>
             {isPhoneTable
-              ? showPhoneTable(deliveredOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.delivered)
-              : showDesktopTable(deliveredOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.delivered, selectedLang(currentLang))}
+              ? showPhoneTable(deliveredOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.delivered, canDeleteOrders ? setOrderToDelete : undefined, deletingOrderId)
+              : showDesktopTable(deliveredOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.delivered, selectedLang(currentLang), canDeleteOrders ? setOrderToDelete : undefined, deletingOrderId)}
             {deliveredOrders.length > 3 && (
               <div className="orders-expansion text-center m-1 d-flex justify-content-center">
                 <button className="btn btn-outline-primary" onClick={() => toggleExpand("delivered")}>
@@ -192,8 +219,8 @@ const Orders: React.FC = () => {
         ) : allOrders.length > 0 ? (
           <>
             {isPhoneTable
-              ? showPhoneTable(allOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.all)
-              : showDesktopTable(allOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.all, selectedLang(currentLang))}
+              ? showPhoneTable(allOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.all, canDeleteOrders ? setOrderToDelete : undefined, deletingOrderId)
+              : showDesktopTable(allOrders, t, orderStatus, orderExceptions, processOrder, isExpanded.all, selectedLang(currentLang), canDeleteOrders ? setOrderToDelete : undefined, deletingOrderId)}
             {allOrders.length > 3 && (
               <div className="orders-expansion text-center m-1 d-flex justify-content-center">
                 <button className="btn btn-outline-primary" onClick={() => toggleExpand("all")}>
@@ -212,6 +239,17 @@ const Orders: React.FC = () => {
 
       <AnimatePresence mode="wait">
       </AnimatePresence>
+      <ConfirmDeleteModal
+        open={orderToDelete !== null}
+        title={t("admin.orders.deleteTitle")}
+        message={t("admin.orders.deleteWarning")}
+        itemLabel={orderToDelete ? `#${orderToDelete.order_id}` : undefined}
+        confirmLabel={t("admin.orders.delete")}
+        cancelLabel={t("ui.cancel")}
+        loading={isDeletingOrder}
+        onConfirm={deleteOrder}
+        onClose={() => setOrderToDelete(null)}
+      />
       <ToastContainer />
     </>
   );

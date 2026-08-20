@@ -1,2 +1,60 @@
 /* Shared .db-settings / .db-settings.rtl page-shell rules now live in
    index.css (deduped — this file previously repeated them byte-for-byte). */
+
+.taxonomy-list-wrap {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--db-border);
+}
+
+.taxonomy-list-title {
+  margin-bottom: 10px;
+  color: var(--db-ink-soft);
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.taxonomy-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.taxonomy-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 6px 7px 6px 12px;
+  border: 1px solid var(--db-border);
+  border-radius: 999px;
+  background: var(--db-surface);
+  color: var(--db-ink);
+  font-weight: 700;
+  box-shadow: var(--db-shadow-sm);
+}
+
+.taxonomy-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--db-danger-bg);
+  color: var(--db-danger);
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.taxonomy-delete-btn:hover,
+.taxonomy-delete-btn:focus-visible {
+  background: var(--db-danger);
+  color: #fff;
+  transform: scale(1.06);
+  outline: none;
+}

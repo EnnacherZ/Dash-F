@@ -4,9 +4,29 @@ import deliveryFormPages from "./delivery form pages.pdf";
 import * as arabicReshaperModule from "arabic-reshaper"
 import NotoSansArabicUrl from "../assets/NotoSansArabic-Regular.ttf";
 import * as fontkitImport from 'fontkit';
-const fontkit = (fontkitImport as any).default || fontkitImport;
+import type { DashboardOrder } from "../server/orders";
+type PdfFontkit = Parameters<PDFDocument['registerFontkit']>[0];
+const fontkit = fontkitImport as unknown as PdfFontkit;
 
-const DeliveryForm = async(items:any[], orderDetails:any, client:any) => {
+type DeliveryItem = DashboardOrder["ordered_products"][number];
+type DeliveryClient = DashboardOrder["client"];
+
+interface DeliveryOrderDetails {
+    amount: number;
+    discount: number;
+    shipping: number;
+    paymentMethod: string;
+    shippingMethod: string;
+    shippingDate: string;
+    date: string | null;
+    order_id: string;
+}
+
+const DeliveryForm = async(
+    items: DeliveryItem[],
+    orderDetails: DeliveryOrderDetails,
+    client: DeliveryClient,
+) => {
 
 const formFile = await fetch(deliveryForm).then(res => res.arrayBuffer());
 const formItemsPagesFile = await fetch(deliveryFormPages).then(res => res.arrayBuffer());
@@ -72,7 +92,7 @@ if (items.length - 10 > 0) {
 }
 
 // Informations commande sur firstPage
-firstPage.drawText(orderDetails.date, { x: 360, y: 800, size: 11, color: rgb(0, 0, 0) });
+firstPage.drawText(orderDetails.date ?? "—", { x: 360, y: 800, size: 11, color: rgb(0, 0, 0) });
 firstPage.drawText(orderDetails.order_id, { x: 360, y: 735, size: 11, color: rgb(0, 0, 0) });
 firstPage.drawText(`${arabicReshaperModule.convertArabic(client.first_name)} ${arabicReshaperModule.convertArabic(client.last_name)}`, { x: 70, y: 640, size: 11, color: rgb(0, 0, 0), font});
 firstPage.drawText(client.phone, { x: 70, y: 615, size: 11, color: rgb(0, 0, 0) });

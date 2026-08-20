@@ -45,6 +45,7 @@ export default {
             sandal: 'Sandales',
             shirt: 'Chemises',
             pant: 'Pantalons',
+            cap: 'Casquettes',
           },
 
           cart: {
@@ -190,6 +191,7 @@ export default {
           },
 
           form: {
+            optional: 'facultatif',
             firstName: { label: 'Prénom', required: 'Votre prénom est obligatoire' },
             lastName:  { label: 'Nom',    required: 'Votre nom est obligatoire'    },
             fullName: 'Nom et prénom',
@@ -342,6 +344,11 @@ export default {
               deliveryManUpdated: 'Livreur mis à jour avec succès.',
               deliveryManUpdateFailed: 'Échec de la mise à jour du livreur. Veuillez réessayer.',
               noDeliveryMen: "Aucun livreur trouvé. Ajoutez-en un depuis les paramètres d'abord.",
+              delete: 'Supprimer la commande',
+              deleteTitle: 'Supprimer cette commande ?',
+              deleteWarning: "Cette commande sera retirée des listes du tableau de bord. Son historique et les données de stock resteront conservés en toute sécurité.",
+              deleteSuccess: 'Commande retirée du tableau de bord.',
+              deleteFailed: 'Impossible de supprimer la commande. Veuillez réessayer.',
             },
             deficiency: {
               title:             'Déficit de quantité',
@@ -394,6 +401,18 @@ export default {
               tooManyImages:    "Vous ne pouvez télécharger que 4 images maximum.",
               fillOneField:     'Veuillez remplir au moins un champ.',
               checkFields:      'Veuillez vérifier le(s) champ(s) suivant(s) : {{fields}}',
+              refDefaultHint:   'Laissez vide pour utiliser la valeur par défaut du serveur',
+              existingTypes:    'Types de produits existants',
+              existingCategories: 'Catégories existantes',
+              deleteTypeTitle:  'Supprimer ce type de produit ?',
+              deleteTypeWarning: 'Seuls les types qui ne sont utilisés par aucun produit peuvent être supprimés.',
+              deleteCategoryTitle: 'Supprimer cette catégorie ?',
+              deleteCategoryWarning: 'Seules les catégories qui ne sont utilisées par aucun produit peuvent être supprimées.',
+              typeDeleted:      'Type de produit supprimé.',
+              categoryDeleted:  'Catégorie supprimée.',
+              typeInUse:        'Ce type est utilisé par des produits existants et ne peut pas être supprimé.',
+              categoryInUse:    'Cette catégorie est utilisée par des produits existants et ne peut pas être supprimée.',
+              taxonomyAdded:    'Paramètres des produits mis à jour.',
             },
             overview: { general: 'Aperçu général', notDeveloped: 'Pas encore développé', revenueThisMonth: 'Revenu de ce mois', avgOrderValue: 'Panier moyen' },
             users: {
