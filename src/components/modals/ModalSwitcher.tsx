@@ -1,27 +1,28 @@
 /**
  * src/components/modals/ModalSwitcher.tsx
  *
- * FIX: processDeficiency posted to `db/deficiencies/processDeficiency`
+ * Deficiency processing posts to the backend's canonical process route.
  *      but the backend route is `db/deficiencies/process`.
  *      URL corrected on line marked with // FIX.
  *
  * FIX: isSP and isLoading initialised to false (was undefined → boolean | undefined).
  */
-import React, { useLayoutEffect, useState } from "react";
-import ModalBackDrop from "./modalBackdrop";
+import React, { useState } from "react";
+import ModalBackDrop from "./ModalBackdrop";
 import { motion } from "framer-motion";
 import "./modals.css";
-import { IoArrowBackOutline } from "react-icons/io5";
-import { FaRegTrashAlt, FaSortAmountDown, FaUserAlt, FaWpforms } from "react-icons/fa";
+import { FaSortAmountDown, FaUserAlt, FaWpforms } from "react-icons/fa";
 import { useTranslation } from "react-i18next";
 import { useLangContext } from "@/contexts/LanguageContext";
 import { Rings } from "react-loader-spinner";
-import Loading from "@/components/loading";
+import Loading from "@/components/Loading";
 import apiInstance from "@/lib/api";
 import { dropIn } from "@/utils/motion";
 import { goToNewBlank } from "@/utils/navigation";
 import { selectedLang } from "@/utils/i18n";
 import { showToast } from "@/utils/toast";
+import type { DashboardOrder } from "@/server/orders";
+import type { Deficiency } from "@/server/deficiencies";
 
 const connecter = apiInstance;
 
@@ -29,29 +30,21 @@ const ModalSwitcher: React.FC<{
   cible: string;
   message: string | undefined;
   onBack: () => void;
-  item: any;
-  onDelete: (() => void) | undefined;
-}> = ({ cible, onBack, item, onDelete, message }) => {
+  item: DashboardOrder | Deficiency;
+}> = ({ cible, onBack, item, message }) => {
   const { t } = useTranslation();
   const { currentLang } = useLangContext();
-  const [isSP,       setIsSP]       = useState<boolean>(false);
   const [isLoading,  setIsLoading]  = useState<boolean>(false);
-
-  useLayoutEffect(() => {
-    setIsSP(window.innerWidth < 600);
-  }, []);
-
-  const handleOnDelete = () => {
-    if (onDelete) { onDelete(); onBack(); }
-  };
+  const orderItem = item as DashboardOrder;
+  const deficiencyItem = item as Deficiency;
 
   const processDeficiency = async () => {
     setIsLoading(true);
     try {
-      // FIX: was `db/deficiencies/processDeficiency` — backend route is `db/deficiencies/process`
+      // Keep this route aligned with dashboard/urls.py.
       const response = await connecter.post("db/deficiencies/process", {
-        exceptionID: item.exception_id,
-        orderID:     item.order.order_id,
+        exceptionID: deficiencyItem.exception_id,
+        orderID:     deficiencyItem.order.order_id,
       });
       if (response.status === 200) {
         showToast(t("admin.deficiency.success"), "success");
@@ -64,9 +57,21 @@ const ModalSwitcher: React.FC<{
     }
   };
 
+  const modalLabel = cible === "orders"
+    ? t("order.details")
+    : cible === "deficiencies"
+      ? t("admin.deficiency.title")
+      : message || t("ui.loading");
+
   return (
     <div className={selectedLang(currentLang) === "ar" ? "rtl" : ""}>
-      <ModalBackDrop onClose={() => {}} onOpen={true}>
+      <ModalBackDrop
+        onClose={onBack}
+        onOpen={true}
+        dismissible={!isLoading && cible !== "loading"}
+        size={cible === "orders" || cible === "deficiencies" ? "xl" : "sm"}
+        label={modalLabel}
+      >
         <motion.div
           onClick={(e) => e.stopPropagation()}
           className=""
@@ -77,50 +82,46 @@ const ModalSwitcher: React.FC<{
         >
           {/* ── Orders modal ─────────────────────────────────────────────── */}
           {cible === "orders" && (
-            <div className="db modals orders card shadow">
+            <div className="db modals orders">
               {isLoading ? (
                 <Loading message={t("ui.loading")} />
               ) : (
                 <>
-                  <h4 className="m-3 fw-bold d-flex justify-content-center">
+                  <h4 className="modal-detail-title">
                     <FaUserAlt className="mx-2" />
                     {t("form.clientInfo")}
                   </h4>
                   <ul className="fw-bold modal-orders-client-infos">
                     <li className="m-2 my-3">
                       <span>{t("form.fullName")} :</span>
-                      <span>{item.client.last_name + " " + item.client.first_name}</span>
+                      <span>{orderItem.client.last_name + " " + orderItem.client.first_name}</span>
                     </li>
                     <li className="m-2 my-3">
                       <span>{t("form.email.label")} :</span>
-                      <span>{item.client.email}</span>
+                      <span>{orderItem.client.email}</span>
                     </li>
                     <li className="m-2 my-3">
                       <span>{t("form.phone.label")} :</span>
-                      <span>{item.client.phone}</span>
+                      <span>{orderItem.client.phone}</span>
                     </li>
                     <li className="m-2 my-3">
                       <span>{t("form.address.label")} :</span>
-                      <span>{item.client.address + " " + item.client.city}</span>
+                      <span>{orderItem.client.address + " " + orderItem.client.city}</span>
                     </li>
                     <li className="m-2 my-3">
                       <span>{t("order.orderId")} :</span>
-                      <span>{item.order_id}</span>
+                      <span>{orderItem.order_id}</span>
                     </li>
                   </ul>
-                  <hr className="mx-2 my-2" />
-                  <h4 className="m-3 fw-bold d-flex justify-content-center">
+                  <hr className="modal-detail-divider" />
+                  <h4 className="modal-detail-title">
                     <FaWpforms className="mx-2" />
                     {t("admin.product.orderedProducts")}
                   </h4>
-                  <div
-                    style={{ maxHeight: "300px", overflowY: "auto", width: "98%", margin: "auto" }}
-                    className="rounded shadow-sm"
-                  >
-                    {item.ordered_products.length > 0 && (
+                  <div className="modal-table-wrapper">
+                    {orderItem.ordered_products.length > 0 && (
                       <table
-                        className="table table-bordered orders-table rounded shadow-sm"
-                        style={{ width: "98%", margin: "auto" }}
+                        className="table orders-table"
                       >
                         <thead>
                           <tr className="text-muted">
@@ -133,8 +134,8 @@ const ModalSwitcher: React.FC<{
                           </tr>
                         </thead>
                         <tbody>
-                          {Array.isArray(item.ordered_products) &&
-                            item.ordered_products.map((ord: any, index: number) => (
+                          {Array.isArray(orderItem.ordered_products) &&
+                            orderItem.ordered_products.map((ord, index) => (
                               <tr key={index}>
                                 <td>{ord.product_type}</td>
                                 <td>{ord.category}</td>
@@ -148,10 +149,10 @@ const ModalSwitcher: React.FC<{
                       </table>
                     )}
                   </div>
-                  <div className="orders-actions-buttons m-3 d-flex justify-content-end">
+                  <div className="orders-actions-buttons">
                     <button
                       className="btn btn-warning mx-2"
-                      onClick={() => { goToNewBlank(`/OrderDetails/${item.order_id}`); onBack(); }}
+                      onClick={() => { goToNewBlank(`/OrderDetails/${orderItem.order_id}`); onBack(); }}
                     >
                       {t("order.details")}
                     </button>
@@ -166,49 +167,45 @@ const ModalSwitcher: React.FC<{
 
           {/* ── Deficiencies modal ───────────────────────────────────────── */}
           {cible === "deficiencies" && (
-            <div className="db modals orders card shadow">
+            <div className="db modals orders">
               {isLoading ? (
                 <Loading message={t("ui.loading")} />
               ) : (
                 <>
-                  <h4 className="m-3 fw-bold d-flex justify-content-center">
+                  <h4 className="modal-detail-title">
                     <FaUserAlt className="mx-2" />
                     {t("form.clientInfo")}
                   </h4>
                   <ul className="fw-bold modal-orders-client-infos">
                     <li className="m-2 my-3">
                       <span>{t("form.fullName")} :</span>
-                      <span>{item.order.client.last_name + " " + item.order.client.first_name}</span>
+                      <span>{deficiencyItem.order.client.last_name + " " + deficiencyItem.order.client.first_name}</span>
                     </li>
                     <li className="m-2 my-3">
                       <span>{t("form.email.label")} :</span>
-                      <span>{item.order.client.email}</span>
+                      <span>{deficiencyItem.order.client.email}</span>
                     </li>
                     <li className="m-2 my-3">
                       <span>{t("form.phone.label")} :</span>
-                      <span>{item.order.client.phone}</span>
+                      <span>{deficiencyItem.order.client.phone}</span>
                     </li>
                     <li className="m-2 my-3">
                       <span>{t("form.address.label")} :</span>
-                      <span>{item.order.client.address + " " + item.order.client.city}</span>
+                      <span>{deficiencyItem.order.client.address + " " + deficiencyItem.order.client.city}</span>
                     </li>
                     <li className="m-2 my-3">
                       <span>{t("order.orderId")} :</span>
-                      <span>{item.order.order_id}</span>
+                      <span>{deficiencyItem.order.order_id}</span>
                     </li>
                   </ul>
-                  <hr className="mx-2 my-2" />
-                  <h4 className="m-3 fw-bold d-flex justify-content-center">
+                  <hr className="modal-detail-divider" />
+                  <h4 className="modal-detail-title">
                     <FaSortAmountDown className="mx-2" />
                     {t("admin.deficiency.title")}
                   </h4>
-                  <div
-                    style={{ maxHeight: "300px", overflowY: "auto", width: "98%", margin: "auto" }}
-                    className="rounded shadow-sm"
-                  >
+                  <div className="modal-table-wrapper">
                     <table
-                      className="table table-bordered orders-table rounded shadow-sm"
-                      style={{ width: "98%", margin: "auto" }}
+                      className="table orders-table"
                     >
                       <thead>
                         <tr className="text-muted">
@@ -222,17 +219,17 @@ const ModalSwitcher: React.FC<{
                       </thead>
                       <tbody>
                         <tr>
-                          <td>{item.product_type}</td>
-                          <td>{item.product_category}</td>
-                          <td>{item.product_ref}</td>
-                          <td>{item.product_name}</td>
-                          <td>{item.product_size}</td>
-                          <td>{item.delta_quantity}</td>
+                          <td>{deficiencyItem.product_type}</td>
+                          <td>{deficiencyItem.product_category}</td>
+                          <td>{deficiencyItem.product_ref}</td>
+                          <td>{deficiencyItem.product_name}</td>
+                          <td>{deficiencyItem.product_size}</td>
+                          <td>{deficiencyItem.delta_quantity}</td>
                         </tr>
                       </tbody>
                     </table>
                   </div>
-                  <div className="orders-actions-buttons m-2 d-flex justify-content-end">
+                  <div className="orders-actions-buttons">
                     <button className="btn btn-success mx-2" onClick={processDeficiency}>
                       {t("admin.deficiency.confirm")}
                     </button>
@@ -245,54 +242,19 @@ const ModalSwitcher: React.FC<{
             </div>
           )}
 
-          {/* ── Delete confirmation modal ────────────────────────────────── */}
-          <div className={`${cible === "db/delete" ? "card align-middle parentCartConfAll" : "d-none"}`}>
-            <div
-              className={`ms-3 fw-bold ${selectedLang(currentLang) === "ar" ? "rtl me-2" : ""}`}
-              style={{ fontSize: 20, marginTop: "1%" }}
-            >
-              {t("confirm.deleteTitle")}
-            </div>
-            <hr />
-            <div
-              className={`mx-3 mt-1 ${selectedLang(currentLang) === "ar" ? "rtl me-2" : ""}`}
-              style={{ fontSize: 16, marginTop: "1%" }}
-            >
-              {t("confirm.removeItem")}
-            </div>
-            <div
-              className="align-bottom mt-4"
-              style={{ display: "flex", justifyContent: "end", alignItems: "end", marginRight: "1%", marginBottom: "2%" }}
-            >
-              <span className="mx-2">
-                <button className="btn btn-secondary" style={isSP ? { fontSize: 13 } : {}} onClick={onBack}>
-                  <IoArrowBackOutline /> {t("confirm.cancelBack")}
-                </button>
-              </span>
-              <span className="mx-2">
-                <button className="btn btn-danger" style={isSP ? { fontSize: 13 } : {}} onClick={handleOnDelete}>
-                  <FaRegTrashAlt /> {t("confirm.remove")}
-                </button>
-              </span>
-            </div>
-          </div>
-
           {/* ── Loading modal ────────────────────────────────────────────── */}
-          <div className={`${cible === "loading" ? "card align-middle parentCartConfAll" : "d-none"}`}>
-            <div
-              className="flex-column"
-              style={{ display: "flex", justifyContent: "center", alignItems: "center" }}
-            >
+          {cible === "loading" && (
+            <div className="modal-loading" role="status" aria-live="polite">
               <Rings
-                height="10em"
-                width="10em"
+                height="7em"
+                width="7em"
                 color="#0e92e4"
                 ariaLabel="loading"
                 wrapperStyle={{ justifyContent: "center", alignItems: "center" }}
               />
-              <div className="loading-msg fs-3 fw-bold text-center mt-4">{message}</div>
+              <div className="modal-loading__message">{message}</div>
             </div>
-          </div>
+          )}
         </motion.div>
       </ModalBackDrop>
     </div>

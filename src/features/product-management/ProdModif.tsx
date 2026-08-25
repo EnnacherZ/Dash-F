@@ -1,8 +1,7 @@
 import React, {useEffect, useState} from "react";
 import "./product-form.css";
 import { toast, ToastContainer, Zoom } from "react-toastify";
-import Modals from "@/components/modals/ModalSwitcher";
-import { AnimatePresence } from "framer-motion";
+import ConfirmActionModal from "@/components/modals/ConfirmActionModal";
 import { OptionType } from "@/pages/ProductsManager";
 import apiInstance from "@/lib/api";
 import { useTranslation } from "react-i18next";
@@ -16,11 +15,13 @@ const ProdModif : React.FC = () => {
     const {t} = useTranslation();
     const [selectedOption, setSelectedOption] = useState<OptionType | null>(null);
     const [isModal, setIsModal] = useState<boolean>(false);
+    const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
     const [ref, setRef] = useState<number | string>('');
     const [name, setName] = useState<string>('');
     const [category, setCategory] = useState<string>('');
     const [price, setPrice] = useState<number | string>('');
     const [newest, setNewest] = useState<boolean>(false);
+    const [newestTouched, setNewestTouched] = useState<boolean>(false);
     const [promo, setPromo] = useState<number | string>('');
     const [imageP, setImageP] = useState<File | null>(null);
     const [images, setImages] = useState<File[]>([]);
@@ -45,7 +46,16 @@ const ProdModif : React.FC = () => {
     }, [images]);
 
     const handleOption = (option: OptionType | null) => {
-        setSelectedOption(option)
+        setSelectedOption(option);
+        setRef('');
+        setName('');
+        setCategory('');
+        setPrice('');
+        setPromo('');
+        setNewest(false);
+        setNewestTouched(false);
+        setImageP(null);
+        setImages([]);
     };
 
     const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -72,26 +82,33 @@ const ProdModif : React.FC = () => {
         if(e.target.files){ setImageP(e.target.files[0]) }
     }
 
+    const hasChanges = () => !(
+        (ref === null || ref === '' || ref === undefined) &&
+        (name === null || name.trim() === '' || name === undefined) &&
+        (category === null || category.trim() === '' || category === undefined) &&
+        (price === null || price === '' || price === undefined) &&
+        (promo === null || promo === '' || promo === undefined) &&
+        (imageP === null || imageP === undefined) &&
+        images.length === 0 &&
+        !newestTouched
+    );
+
+    const openConfirmation = () => {
+        if (!selectedOption) {
+            showToast(t('admin.product.checkFields', { fields: t('product.label') }), "error");
+            return;
+        }
+        if (!hasChanges()) {
+            showToast(t('admin.product.fillOneField'), "error");
+            return;
+        }
+        setIsModal(true);
+    };
+
     const handleSubmit = async () => {
         const formData = new FormData();
         if(selectedOption){
             const prodId = selectedOption.value;
-            const noFieldFilled =
-                (ref === null || ref === '' || ref === undefined) &&
-                (name === null || name.trim() === '' || name === undefined) &&
-                (category === null || category.trim() === '' || category === undefined) &&
-                (price === null || price === '' || price === undefined) &&
-                (promo === null || promo === '' || promo === undefined) &&
-                (imageP === null || imageP === undefined) &&
-                (images === null || images.length == 0 || images === undefined);
-
-            if (noFieldFilled) {
-                // FIX: previously only warned via alert() and fell through to
-                // submit an empty PATCH request anyway. Now actually blocks
-                // submission, consistent with the "fill one field at least" message.
-                showToast(t('admin.product.fillOneField'), "error");
-                return;
-            }
             if(!(ref === null || ref === '' || ref === undefined)){ formData.append('ref', ref.toString()); }
             if(!(name === null || name.trim() === '' || name === undefined)){ formData.append('name', name); }
             if(!(category === null || category.trim() === '' || category === undefined)){ formData.append('category', category); }
@@ -101,14 +118,21 @@ const ProdModif : React.FC = () => {
             if(!(images === null || images === undefined)){
                 images.forEach((image, index) => { formData.append(`image${index + 1}`, image); });
             }
-            formData.append('newest', newest ? 'true' : 'false');
+            if (newestTouched) formData.append('newest', newest ? 'true' : 'false');
+            setIsSubmitting(true);
             try {
                 const response = await connecter.patch(`db/products/manager/${prodId}/`, formData, {
                     headers: { 'Content-Type': 'multipart/form-data' },
                 });
-                if(response.status == 201){ window.location.reload(); }
+                if(response.status === 200 || response.status === 201){
+                    showToast(t('admin.product.updateSuccess'), "success");
+                    setIsModal(false);
+                    window.setTimeout(() => window.location.reload(), 650);
+                }
             } catch {
-                showToast(t('error.elementNotFound'), "error");
+                showToast(t('admin.product.updateError'), "error");
+            } finally {
+                setIsSubmitting(false);
             }
         } else {
             toast.error(t('admin.product.checkFields', { fields: t('product.label') }), {
@@ -139,7 +163,7 @@ const ProdModif : React.FC = () => {
                         </div>
                         <div className="mb-3">
                             <label htmlFor="ref" className="form-label">{t('product.ref')} :</label>
-                            <input type="number" className="form-control" id="ref" value={ref} onChange={(e) => setRef(Number(e.target.value))}/>
+                            <input type="text" className="form-control" id="ref" value={ref} onChange={(e) => setRef(e.target.value)}/>
                         </div>
                     </div>
                     <div className="mb-3">
@@ -157,7 +181,7 @@ const ProdModif : React.FC = () => {
                         </div>
                     </div>
                     <div className="mb-3 form-check form-switch">
-                        <input type="checkbox" className="form-check-input" id="flexSwitchCheckDefault" checked={newest} onChange={() => setNewest(!newest)}/>
+                        <input type="checkbox" className="form-check-input" id="newest" checked={newest} onChange={() => { setNewest(!newest); setNewestTouched(true); }}/>
                         <label htmlFor="newest" className="form-check-label">{t('admin.product.newer')} :</label>
                     </div>
 
@@ -188,20 +212,22 @@ const ProdModif : React.FC = () => {
                             </div>
                         )}
                     </div>
-                    <button type="button" className="btn btn-primary fw-bold" onClick={() => setIsModal(true)}>{t('form.submit')}</button>
+                    <button type="button" className="btn btn-primary fw-bold" onClick={openConfirmation}>{t('form.submit')}</button>
                 </>}
             </form>
         </div>
         <ToastContainer/>
-        <AnimatePresence>
-            {isModal && <Modals
-                message={undefined}
-                cible="db/delete"
-                item={{}}
-                onBack={() => setIsModal(false)}
-                onDelete={handleSubmit}
-            />}
-        </AnimatePresence>
+        <ConfirmActionModal
+            open={isModal}
+            title={t('admin.product.updateTitle')}
+            message={t('admin.product.updateWarning')}
+            targetLabel={selectedOption?.label}
+            confirmLabel={t('admin.product.updateConfirm')}
+            cancelLabel={t('ui.cancel')}
+            loading={isSubmitting}
+            onConfirm={handleSubmit}
+            onClose={() => !isSubmitting && setIsModal(false)}
+        />
     </>)
 };
 

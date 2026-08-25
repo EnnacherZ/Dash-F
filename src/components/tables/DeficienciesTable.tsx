@@ -1,6 +1,15 @@
 import { hideInfos } from "@/utils/general";
+import type { TFunction } from "i18next";
+import type { Deficiency } from "@/server/deficiencies";
 
-export const showDeficienciesDesktopTable = (content: any[], t:any, deficiencyOnClick:any, isExpanded:any) => {
+type DeficiencyClickHandler = (deficiency: Deficiency) => void;
+
+export const showDeficienciesDesktopTable = (
+  content: Deficiency[],
+  t: TFunction,
+  deficiencyOnClick: DeficiencyClickHandler,
+  isExpanded: boolean,
+) => {
 
   return(<div className="responsive-table">
             <table className="table table-bordered mt-2 orders-table shadow-sm rounded bg-white">
@@ -37,7 +46,12 @@ export const showDeficienciesDesktopTable = (content: any[], t:any, deficiencyOn
 
 }
 
-export const showDeficienciesPhoneTable = (content: any[], t:any, deficiencyOnClick:any, isExpanded:any) => {
+export const showDeficienciesPhoneTable = (
+  content: Deficiency[],
+  t: TFunction,
+  deficiencyOnClick: DeficiencyClickHandler,
+  isExpanded: boolean,
+) => {
 
   return(<div className="d-flex flex-column gap-3 m-1">
             {content.slice(0, isExpanded? content.length: 3).map((ord, index) => (

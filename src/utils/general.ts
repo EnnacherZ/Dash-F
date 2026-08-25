@@ -1,6 +1,6 @@
 export const wait = async (time:number) => await new Promise ((resolve)=>setTimeout(resolve, time))
 
-export const hideInfos = (infos: any, range: number): string => {
+export const hideInfos = (infos: unknown, range: number): string => {
     if (!infos || typeof infos !== 'string') {
         return "Not found";
     }

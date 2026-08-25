@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
-import "./dbSidebar.css";
+import "./Sidebar.css";
 import { BsInboxesFill } from "react-icons/bs";
 import { GiClothes } from "react-icons/gi";
 import { FaArrowDownWideShort } from "react-icons/fa6";
 import logo from "@/assets/FIRDAOUS STORE.png";
-import { FaHome, FaSignOutAlt } from "react-icons/fa";
+import { FaHome, FaSignOutAlt, FaTag } from "react-icons/fa";
 import { MdLanguage, MdOutlineSettings, MdOutlineEmail } from "react-icons/md";
 import { useLangContext } from "@/contexts/LanguageContext";
 import { useTranslation } from "react-i18next";
@@ -63,6 +63,7 @@ const Sidebar : React.FC = () => {
                 <li className={`my-3 rounded ${actual.toLowerCase() == 'orders' && 'DbIsClicked'}`} onClick={() => navigate("/Orders")}><BsInboxesFill className="me-2"/> {t('nav.orders')}</li>
                 <li className={`my-3 rounded ${actual.toLowerCase() == 'deficiency' && 'DbIsClicked'}`} onClick={() => navigate("/Deficiency")}><FaArrowDownWideShort className="me-2"/> {t('admin.deficiency.title')}</li>
                 <li className={`my-3 rounded ${actual.toLowerCase() == 'productmanager' && 'DbIsClicked'}`} onClick={() => navigate('/ProductManager')}><GiClothes className="me-2"/> {t('admin.product.management')}</li>
+                {user?.role !== 'delivery' && <li className={`my-3 rounded ${actual.toLowerCase() == 'promotions' && 'DbIsClicked'}`} onClick={() => navigate('/Promotions')}><FaTag className="me-2"/> {t('nav.promotions')}</li>}
                 <div className={`my-2 rounded db-sidebar-action db-statistics-btn ${actual.toLowerCase() == 'statistics' && 'DbIsClicked'}`} onClick={() => navigate("/Statistics")}>
                     <span className="db-sidebar-action-icon db-sidebar-action-icon--stats"><ImStatsDots/></span>
                     <span>{t('nav.statistics')}</span>

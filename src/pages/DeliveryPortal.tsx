@@ -36,9 +36,9 @@ import { getDate } from "@/utils/date";
 import { showToast } from "@/utils/toast";
 import { hideInfos } from "@/utils/general";
 import apiInstance from "@/lib/api";
-import Loading from "@/components/loading";
+import Loading from "@/components/Loading";
 import EmptyState from "@/components/EmptyState";
-import ModalBackdrop from "@/components/modals/modalBackdrop";
+import ModalBackdrop from "@/components/modals/ModalBackdrop";
 import "@/components/modals/modals-shared.css";
 import "../styles/deliveryPortal.css";
 
@@ -589,7 +589,7 @@ const ConfirmDeliveryModal: React.FC<{
   const canConfirm = itemsDelivered && (!requiresPayment || amountReceived);
 
   return (
-    <ModalBackdrop onClose={isSubmitting ? () => {} : onClose} onOpen={true}>
+    <ModalBackdrop onClose={onClose} onOpen={true} dismissible={!isSubmitting} size="sm" label={t("delivery.confirmTitle")}>
       <div className="confirm-modal">
         <h4 className="confirm-modal__title">
           <FaCheckCircle color="var(--db-success)" />
@@ -650,7 +650,7 @@ const SignOutConfirmModal: React.FC<{
   };
 
   return (
-    <ModalBackdrop onClose={isSigningOut ? () => {} : onClose} onOpen={true}>
+    <ModalBackdrop onClose={onClose} onOpen={true} dismissible={!isSigningOut} size="sm" label={t("delivery.signOutConfirmTitle")}>
       <div className="confirm-modal">
         <h4 className="confirm-modal__title">
           <FaSignOutAlt color="var(--db-danger)" />

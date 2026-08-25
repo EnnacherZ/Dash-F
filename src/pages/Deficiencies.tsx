@@ -12,7 +12,7 @@ import Sidebar from "@/layout/Sidebar";
 import DbHeader from "@/layout/DbHeader";
 import "../styles/deficiency.css";
 import { FaSortAmountDown } from "react-icons/fa";
-import { useDeficiencies } from "../server/deficiencies";
+import { useDeficiencies, type Deficiency } from "../server/deficiencies";
 import { useLangContext } from "../contexts/LanguageContext";
 import EmptyState from "../components/EmptyState";
 import { selectedLang } from "@/utils/i18n";
@@ -20,7 +20,7 @@ import { showDeficienciesDesktopTable, showDeficienciesPhoneTable } from "@/comp
 import { AnimatePresence } from "framer-motion";
 import Modals from "@/components/modals/ModalSwitcher";
 import { useTranslation } from "react-i18next";
-import Loading from "../components/loading";
+import Loading from "../components/Loading";
 import { ToastContainer } from "react-toastify";
 
 const ExceptionsPage: React.FC = () => {
@@ -29,7 +29,7 @@ const ExceptionsPage: React.FC = () => {
   const { deficiencies, loading, error } = useDeficiencies();
 
   const [isExpanded,        setIsExpanded]        = useState<boolean>(false);
-  const [targetedItem,      setTargetedItem]       = useState<any>();
+  const [targetedItem,      setTargetedItem]       = useState<Deficiency>();
   // FIX: was useState<boolean>() → boolean | undefined
   const [isDeficiencyModal, setIsDeficiencyModal]  = useState<boolean>(false);
   const [isPhoneTable,      setIsPhoneTable]       = useState<boolean>(false);
@@ -42,7 +42,7 @@ const ExceptionsPage: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const processDeficiency = (ord: any) => {
+  const processDeficiency = (ord: Deficiency) => {
     setTargetedItem(ord);
     setIsDeficiencyModal(true);
   };
@@ -85,10 +85,9 @@ const ExceptionsPage: React.FC = () => {
       </div>
 
       <AnimatePresence mode="wait">
-        {isDeficiencyModal && (
+        {isDeficiencyModal && targetedItem && (
           <Modals
             message={undefined}
-            onDelete={undefined}
             cible="deficiencies"
             onBack={() => setIsDeficiencyModal(false)}
             item={targetedItem}

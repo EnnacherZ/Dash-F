@@ -1,5 +1,5 @@
 /**
- * dashboard/server/orders.tsx
+ * dashboard/server/orders.ts
  *
  * Data-fetching hook for the dashboard orders section.
  * All requests go through apiInstance which sends the httpOnly dashboard
@@ -27,6 +27,8 @@ export interface DashboardOrder {
   payment_mode:    boolean;
   transaction_id:  string | null;
   delivery_man:    string | null;
+  delivery_form?:  string | null;
+  invoice?:        string | null;
   client: {
     id:         number;
     first_name: string;

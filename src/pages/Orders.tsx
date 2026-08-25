@@ -26,7 +26,7 @@ import { AnimatePresence } from "framer-motion";
 import { goToNewBlank } from "@/utils/navigation";
 import { selectedLang } from "@/utils/i18n";
 import { showDesktopTable, showPhoneTable } from "@/components/tables/OrdersTable";
-import Loading from "../components/loading";
+import Loading from "../components/Loading";
 import apiInstance from "@/lib/api";
 import { showToast } from "@/utils/toast";
 import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";

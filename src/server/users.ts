@@ -1,5 +1,5 @@
 /**
- * dashboard/server/users.tsx
+ * dashboard/server/users.ts
  *
  * Data-fetching hook for dashboard user lookups (currently just the
  * delivery-men list used by the "assign delivery man" picker in

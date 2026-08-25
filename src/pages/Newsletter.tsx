@@ -129,7 +129,8 @@ const CampaignEditor: React.FC<{
 
   const handleSend = async (test = false) => {
     if (!initial?.id) { toast.error(t("newsletter.saveFirst")); return; }
-    test ? setTestSending(true) : setSending(true);
+    if (test) setTestSending(true);
+    else setSending(true);
     try {
       const payload: Record<string, string> = { campaign_id: initial.id };
       if (test && testEmail) payload.test_email = testEmail;
@@ -143,7 +144,8 @@ const CampaignEditor: React.FC<{
     } catch (err) {
       toast.error(apiErr(err, t("newsletter.genericError")));
     } finally {
-      test ? setTestSending(false) : setSending(false);
+      if (test) setTestSending(false);
+      else setSending(false);
     }
   };
 

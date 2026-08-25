@@ -15,12 +15,14 @@ import {
     faReceipt, faFileArrowDown, faEye, faTruck, faHashtag, faPen,
 } from "@fortawesome/free-solid-svg-icons";
 import apiInstance from "@/lib/api";
-import Loading from "../components/loading";
+import Loading from "../components/Loading";
 import EmptyState from "../components/EmptyState";
 import { faWpforms } from "@fortawesome/free-brands-svg-icons";
 import { toast, ToastContainer, Zoom } from "react-toastify";
 import DeliveryForm from "../processing/DeliveryForm";
 import { useDeliveryMen } from "@/server/users";
+import type { DashboardOrder } from "@/server/orders";
+import type { Deficiency } from "@/server/deficiencies";
 import Select, { StylesConfig } from "react-select";
 
 interface DeliveryManOption {
@@ -56,8 +58,8 @@ const OrderDetails : React.FC = () => {
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isFound, setIsFound] = useState<boolean>();
     const [isError, setIsError] = useState<boolean>();
-    const [order, setOrder] = useState<any>();
-    const [orderDeficiencies, setOrderDeficiencies] = useState<any[]>([]);
+    const [order, setOrder] = useState<DashboardOrder>();
+    const [orderDeficiencies, setOrderDeficiencies] = useState<Deficiency[]>([]);
     const [isGenerating, setIsGenerating] = useState<boolean>(false);
     const [isExpanded, setIsExpanded] = useState<{orderedProducts:boolean, deficiencies:boolean}>({orderedProducts:false, deficiencies:false});
     const [selectedDeliveryMan, setSelectedDeliveryMan] = useState<DeliveryManOption | null>(null);
@@ -83,8 +85,13 @@ const OrderDetails : React.FC = () => {
         const getOrder = async() => {
             setIsLoading(true);
             try{
-                const response = await apiInstance.get(`db/orders/searched/get?orderID=${orderID}`);
-                const res = await response.data;
+                const response = await apiInstance.get<{
+                    error: boolean;
+                    found: boolean;
+                    order: DashboardOrder;
+                    deficiencies: Deficiency[];
+                }>(`db/orders/searched/get?orderID=${orderID}`);
+                const res = response.data;
                 if(!res.error){
                     setIsFound(res.found);
                     setOrder(res.order);
@@ -102,7 +109,7 @@ const OrderDetails : React.FC = () => {
 
     const onBack = () => { window.close() }
 
-    const getUrl = async (ord:any) => {
+    const getUrl = async (ord: DashboardOrder) => {
         if(ord.exception){
             toast.error(t('admin.deficiency.message'),{
                 position: "top-center",
@@ -172,7 +179,7 @@ const OrderDetails : React.FC = () => {
                     // merged into `order` in place, so the same details view
                     // stays visible and the new "Preview delivery form" link
                     // below appears immediately, without losing the page.
-                    setOrder((prev: any) => ({ ...prev, ...response.data }));
+                    setOrder((prev) => prev ? ({ ...prev, ...response.data }) : prev);
                     showToast(t('admin.orders.treated'), "success");
                 }
             } catch(error){
@@ -194,7 +201,7 @@ const OrderDetails : React.FC = () => {
     }
 
     const saveReassignment = async () => {
-        if (!reassignValue) return;
+        if (!reassignValue || !order) return;
         setIsReassigning(true);
         try {
             const formData = new FormData();
@@ -203,7 +210,7 @@ const OrderDetails : React.FC = () => {
                 headers: { 'Content-Type': 'multipart/form-data' }
             });
             if (response.status == 200) {
-                setOrder((prev: any) => ({ ...prev, ...response.data }));
+                setOrder((prev) => prev ? ({ ...prev, ...response.data }) : prev);
                 showToast(t('admin.orders.deliveryManUpdated'), "success");
                 setIsEditingDeliveryMan(false);
             }
@@ -214,9 +221,9 @@ const OrderDetails : React.FC = () => {
         }
     };
 
-    const processDeficiency = async(item: any) => {
+    const processDeficiency = async(item: Deficiency) => {
         setIsLoading(true);
-        const response = await connecter.post(`db/deficiencies/processDeficiency`, {
+        const response = await connecter.post(`db/deficiencies/process`, {
             exceptionID: item.exception_id,
             orderID: item.order.order_id
         });
@@ -259,7 +266,7 @@ const OrderDetails : React.FC = () => {
                     <FontAwesomeIcon icon={faTriangleExclamation} size="6x" shake style={{color:"#ff0000"}}/>
                     <p className="my-3 fw-bold fs-4">{orderID} {t('tracking.noValidId')}</p>
                 </div>
-            : isFound ?
+            : isFound && order ?
                 <>
                     <div className="db-card">
                         <div className="db-card-header">
@@ -348,7 +355,7 @@ const OrderDetails : React.FC = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {Array.isArray(order.ordered_products) && order.ordered_products.slice(0, isExpanded.orderedProducts ? order.ordered_products.length : 3).map((ord: any, index: number) => (
+                                        {Array.isArray(order.ordered_products) && order.ordered_products.slice(0, isExpanded.orderedProducts ? order.ordered_products.length : 3).map((ord, index) => (
                                             <tr key={index}>
                                                 <td>{ord.product_type}</td>
                                                 <td>{ord.category}</td>

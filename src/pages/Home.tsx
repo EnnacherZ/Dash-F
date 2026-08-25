@@ -1,5 +1,5 @@
 /**
- * dashboard/pages/home.tsx
+ * Dashboard home overview.
  *
  * FIXES:
  *  - isDeficiencyModal typed as boolean | undefined → initialised to false.
@@ -14,11 +14,11 @@ import Sidebar from "@/layout/Sidebar";
 import DbHeader from "@/layout/DbHeader";
 import "../styles/DbHome.css";
 import { FaSortAmountDown, FaWpforms } from "react-icons/fa";
-import { useOrders } from "../server/orders";
+import { useOrders, type DashboardOrder } from "../server/orders";
 import { IoWarning } from "react-icons/io5";
 import { MdOutlineFileDownloadDone } from "react-icons/md";
 import { AnimatePresence } from "framer-motion";
-import { useDeficiencies } from "../server/deficiencies";
+import { useDeficiencies, type Deficiency } from "../server/deficiencies";
 import { useLangContext } from "../contexts/LanguageContext";
 import EmptyState from "../components/EmptyState";
 import { toast, ToastContainer, Zoom } from "react-toastify";
@@ -28,7 +28,7 @@ import { showDeficienciesDesktopTable, showDeficienciesPhoneTable } from "@/comp
 import { showDesktopTable, showPhoneTable } from "@/components/tables/OrdersTable";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import Loading from "../components/loading";
+import Loading from "../components/Loading";
 import Modals from "@/components/modals/ModalSwitcher";
 
 const DBHome: React.FC = () => {
@@ -53,7 +53,7 @@ const DBHome: React.FC = () => {
     deficiencies: false,
   });
 
-  const [targetedDeficiency,  setTargetedDeficiency]  = useState<any>();
+  const [targetedDeficiency,  setTargetedDeficiency]  = useState<Deficiency>();
   // FIX: was useState<boolean>() → boolean | undefined. Now initialised to false.
   const [isDeficiencyModal,   setIsDeficiencyModal]   = useState<boolean>(false);
   const [isPhoneTable,        setIsPhoneTable]        = useState<boolean>(false);
@@ -66,7 +66,7 @@ const DBHome: React.FC = () => {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const deficiencyOnClick = (ord: any) => {
+  const deficiencyOnClick = (ord: Deficiency) => {
     setTargetedDeficiency(ord);
     setIsDeficiencyModal(true);
   };
@@ -80,11 +80,11 @@ const DBHome: React.FC = () => {
     <span className="db-status-pill db-status-pill--success">{t("admin.orders.done")}</span>,
   ];
 
-  const orderOnClick = (ord: any) => {
+  const orderOnClick = (ord: DashboardOrder) => {
     goToNewBlank(`/OrderDetails/${ord.order_id}`)
   };
 
-  const processOrder = (ord: any) => {
+  const processOrder = (ord: DashboardOrder) => {
     if (ord.exception) {
       toast.error(t("admin.deficiency.message"), {
         position:        "top-center",
@@ -196,10 +196,9 @@ const DBHome: React.FC = () => {
       </AnimatePresence>
 
       <AnimatePresence mode="wait">
-        {isDeficiencyModal && (
+        {isDeficiencyModal && targetedDeficiency && (
           <Modals
             message={undefined}
-            onDelete={undefined}
             cible="deficiencies"
             onBack={() => setIsDeficiencyModal(false)}
             item={targetedDeficiency}

@@ -1,5 +1,5 @@
 /**
- * dashboard/server/deficiencies.tsx
+ * dashboard/server/deficiencies.ts
  *
  * FIXES:
  *  - Converted bare function to a proper hook (useDeficiencies) that

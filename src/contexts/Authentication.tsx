@@ -16,14 +16,16 @@ import React, {
   useState,
 } from "react";
 import { useTranslation } from "react-i18next";
-import Loading from "../components/loading";
+import { isAxiosError } from "axios";
+import Loading from "../components/Loading";
 import apiInstance from "@/lib/api";
-import Login from "../pages/LogIn";
+import Login from "../pages/Login";
 import DeliveryPortal from "../pages/DeliveryPortal";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
 export interface DashboardUser {
+  id:         number;
   username:   string;
   email:      string;
   first_name: string;
@@ -74,8 +76,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
       const res = await apiInstance.get<{ user: DashboardUser }>("db/check-auth/");
       setAuth({ status: "authenticated", user: res.data.user });
 
-    } catch (err: any) {
-      const status = err?.response?.status;
+    } catch (error: unknown) {
+      const status = isAxiosError(error) ? error.response?.status : undefined;
 
       if (status === 401 && !isRetry) {
         // Try to refresh the access cookie once
@@ -112,17 +114,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
           { username, password }
         );
         setAuth({ status: "authenticated", user: res.data.user });
-      } catch (err: any) {
-        const msg =
-          err?.response?.data?.error ??
-          err?.response?.data?.detail ??
-          t('auth.genericError');
+      } catch (error: unknown) {
+        const responseData = isAxiosError(error)
+          ? error.response?.data as { error?: string; detail?: string } | undefined
+          : undefined;
+        const msg = responseData?.error ?? responseData?.detail ?? t('auth.genericError');
         setAuth({ status: "unauthenticated" });
         // Re-throw so the Login component can display the error
         throw new Error(msg);
       }
     },
-    []
+    [t]
   );
 
   const signOut = useCallback(async (): Promise<void> => {

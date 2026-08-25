@@ -21,8 +21,8 @@ import { AuthProvider } from "./contexts/Authentication";
 import { ParametersContextProvider } from "./contexts/ParametersContext";
 
 // ── Dashboard pages ───────────────────────────────────────────────────────────
-import Login from "./pages/LogIn";
-import DBHome from "./pages/home";
+import Login from "./pages/Login";
+import DBHome from "./pages/Home";
 import ProductsManager from "./pages/ProductsManager";
 import ExceptionsPage from "./pages/Deficiencies";
 import Orders from "./pages/Orders";
@@ -31,6 +31,7 @@ import Statistics from "./pages/Statistics";
 import OrderDetails from "./pages/OrderDetails";
 import NotFoundPage from "./pages/NotFoundPage";
 import NewsletterSection from "./pages/Newsletter";
+import Promotions from "./pages/Promotions";
 
 // ── Dashboard routes ──────────────────────────────────────────────────────────
 const dashboardRouter = createBrowserRouter(
@@ -45,6 +46,7 @@ const dashboardRouter = createBrowserRouter(
     { path: "/Statistics",                element: <Statistics /> },
     { path: "/OrderDetails/:orderID",     element: <OrderDetails /> },
     { path: "/Newsletter",     element: <NewsletterSection /> },
+    { path: "/Promotions",                  element: <Promotions /> },
     // FIX: there was no catch-all route at all, so any unregistered URL
     // (typo, stale bookmark, or the previously-broken mobile sidebar links)
     // rendered a completely blank page with no feedback.

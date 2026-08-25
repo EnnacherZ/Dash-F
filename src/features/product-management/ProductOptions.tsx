@@ -5,7 +5,7 @@ import { OptionType } from "@/pages/ProductsManager";
 import { useTranslation } from "react-i18next";
 import { useParametersContext } from "@/contexts/ParametersContext";
 import { FaMagnifyingGlass, FaBoxOpen, FaExpand } from "react-icons/fa6";
-import ModalBackdrop from "@/components/modals/modalBackdrop";
+import ModalBackdrop from "@/components/modals/ModalBackdrop";
 
 interface ProductOptionsProps {
     value: OptionType | null,
@@ -120,7 +120,7 @@ const ProductOptions: React.FC<ProductOptionsProps> = ({value, handleOption}) =>
             </div>
 
             {value?.picture && (
-                <ModalBackdrop onOpen={isLightboxOpen} onClose={() => setIsLightboxOpen(false)}>
+                <ModalBackdrop onOpen={isLightboxOpen} onClose={() => setIsLightboxOpen(false)} size="lg" label={t('product.preview')}>
                     <div className="pm-lightbox">
                         <img src={value.picture} alt="" className="pm-lightbox__img"/>
                     </div>

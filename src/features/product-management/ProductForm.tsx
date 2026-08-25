@@ -5,7 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { dropIn } from '@/utils/motion';
 import { showToast } from '@/utils/toast';
 import { Rings } from 'react-loader-spinner';
-import ModalBackDrop from "@/components/modals/modalBackdrop";
+import ModalBackDrop from "@/components/modals/ModalBackdrop";
 import { useParametersContext } from '@/contexts/ParametersContext';
 import { useTranslation } from 'react-i18next';
 import { FaXmark } from 'react-icons/fa6';
@@ -184,7 +184,7 @@ const ProductForm: React.FC = () => {
             </form>
             <AnimatePresence>
                 {isLoading && (
-                    <ModalBackDrop onClose={() => {}} onOpen={true}>
+                    <ModalBackDrop onClose={() => {}} onOpen={true} dismissible={false} size="sm" label={t('ui.loading')}>
                         <motion.div variants={dropIn} initial="hidden" animate="visible" exit="exit">
                             <Rings height="100" width="100" color="#0e92e4"/>
                             <p>{t('ui.loading')}...</p>

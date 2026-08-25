@@ -1,10 +1,10 @@
 /**
- * dashboard/LogIn.tsx — redesigned, logic untouched
+ * dashboard/pages/Login.tsx — dashboard authentication page
  */
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../contexts/Authentication";
-import Loading from "../components/loading";
+import Loading from "../components/Loading";
 import logo from "../assets/FIRDAOUS STORE.png";
 import "../styles/Login.css";
 import { useLangContext } from "../contexts/LanguageContext";
@@ -35,8 +35,8 @@ const Login: React.FC = () => {
     setSubmitting(true);
     try {
       await signIn(e, username, password);
-    } catch (err: any) {
-      setError(err?.message ?? t('auth.genericError'));
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : t('auth.genericError'));
     } finally {
       setSubmitting(false);
     }

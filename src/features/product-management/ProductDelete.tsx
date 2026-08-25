@@ -1,8 +1,7 @@
 import React, {useState} from "react";
-import Modals from "@/components/modals/ModalSwitcher";
+import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
 import "@/components/modals/modals.css";
 import "./product-form.css";
-import { AnimatePresence } from "framer-motion";
 import { OptionType } from "@/pages/ProductsManager";
 import apiInstance from "@/lib/api";
 import { useTranslation } from "react-i18next";
@@ -16,6 +15,7 @@ const ProdDelete : React.FC = () => {
     const {t} = useTranslation();
     const [selectedOption, setSelectedOption] = useState<OptionType | null>(null);
     const [isModal, setIsModal] = useState<boolean>(false);
+    const [isDeleting, setIsDeleting] = useState<boolean>(false);
 
     const handleOption = (option: OptionType | null) => {
         setSelectedOption(option)
@@ -24,8 +24,19 @@ const ProdDelete : React.FC = () => {
     const handleSubmit = async () => {
         if(selectedOption){
             const prodId = selectedOption.value;
-            const response = await connecter.delete(`db/products/manager/${prodId}/`)
-            if(response.status == 201){ window.location.reload(); }
+            setIsDeleting(true);
+            try {
+                const response = await connecter.delete(`db/products/manager/${prodId}/`)
+                if(response.status === 200 || response.status === 204){
+                    showToast(t('admin.product.deleteSuccess'), "success");
+                    setIsModal(false);
+                    window.setTimeout(() => window.location.reload(), 650);
+                }
+            } catch {
+                showToast(t('admin.product.deleteError'), "error");
+            } finally {
+                setIsDeleting(false);
+            }
         } else {
             showToast(t('admin.product.checkFields', { fields: t('product.label') }), "error");
         }
@@ -46,15 +57,19 @@ const ProdDelete : React.FC = () => {
                 </button>
             </form>
         </div>
-        <AnimatePresence>
-            {isModal && <Modals
-                message={undefined}
-                cible="db/delete"
-                item={{}}
-                onBack={() => setIsModal(false)}
-                onDelete={handleSubmit}
-            />}
-        </AnimatePresence>
+        <ConfirmDeleteModal
+            open={isModal}
+            title={t('admin.product.deleteProductTitle')}
+            message={t('admin.product.deleteWarning')}
+            itemLabel={selectedOption?.label}
+            requireText={selectedOption?.label}
+            requireTextLabel={t('admin.product.typeProductToDelete')}
+            confirmLabel={t('confirm.delete')}
+            cancelLabel={t('ui.cancel')}
+            loading={isDeleting}
+            onConfirm={handleSubmit}
+            onClose={() => !isDeleting && setIsModal(false)}
+        />
     </>)
 };
 

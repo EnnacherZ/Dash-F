@@ -2,7 +2,7 @@ import React, {useState } from "react";
 import Sidebar from "@/layout/Sidebar";
 import DbHeader from "@/layout/DbHeader";
 import ProductForm from "@/features/product-management/ProductForm";
-import Loading from "../components/loading";
+import Loading from "../components/Loading";
 import ProdStockForm from "@/features/product-management/ProductStockForm";
 import ProdDelete from "@/features/product-management/ProductDelete";
 import ProdModif from "@/features/product-management/ProdModif";

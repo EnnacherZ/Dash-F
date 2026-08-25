@@ -1,25 +1,47 @@
 /* ── Orders / Deficiencies modal ─────────────────────────────────────────── */
 .db.modals.orders {
-    margin: auto;
-    margin-top: 10px;
-    width: 90%;
-    max-width: 780px;
-    max-height: 90vh;         /* FIX: was fixed 500px — now adapts to viewport */
-    overflow-y: auto;
-    background-color: aliceblue;
-    border-radius: 10px;
-    padding: 5px 0;
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    overflow: visible;
+    margin: 0;
+    padding: 24px;
+    border: 0;
+    border-radius: 0;
+    background: #fff;
+    box-shadow: none;
 }
 
-ul {
+.db.modals.orders ul {
     list-style: none;
+}
+
+.modal-detail-title {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin: 0 48px 16px 0;
+    color: var(--db-ink);
+    font-size: 1rem;
+    font-weight: 850;
+}
+
+.rtl .modal-detail-title { margin: 0 0 16px 48px; }
+
+.modal-detail-title svg { color: var(--db-brand); }
+
+.modal-detail-divider {
+    height: 1px;
+    margin: 22px 0;
+    border: 0;
+    background: var(--db-border);
 }
 
 /* ── Client info grid ────────────────────────────────────────────────────── */
 .modal-orders-client-infos {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 0 15px;
+    gap: 9px;
     padding: 0;
 }
 .modal-orders-client-infos li {
@@ -27,30 +49,59 @@ ul {
     justify-content: space-between;
     align-items: flex-start;
     word-break: break-word;
-    gap: 8px;
+    gap: 12px;
+    min-width: 0;
+    margin: 0 !important;
+    padding: 11px 12px;
+    border: 1px solid var(--db-border);
+    border-radius: 10px;
+    background: var(--db-bg);
+    font-size: .78rem;
 }
 .modal-orders-client-infos li span:first-child {
     flex-shrink: 0;
-    color: #555;
+    color: var(--db-ink-soft);
+    font-weight: 650;
 }
 .modal-orders-client-infos li span:last-child {
     text-align: right;
     word-break: break-all;
+    color: var(--db-ink);
+    font-weight: 750;
 }
 
 /* ── Ordered products table inside modal
    FIX: table was overflowing and products were not visible.
    The wrapper now scrolls horizontally on small screens. ─────────────────── */
 .modal-table-wrapper {
-    max-height: 260px;
+    max-height: 300px;
     overflow-y: auto;
     overflow-x: auto;   /* FIX: horizontal scroll so columns don't get squashed */
-    width: 98%;
-    margin: auto;
+    width: 100%;
+    margin: 0;
+    border: 1px solid var(--db-border);
+    border-radius: 12px;
     -webkit-overflow-scrolling: touch;
 }
 .modal-table-wrapper table {
     min-width: 480px;   /* FIX: ensures columns are readable at any modal width */
+}
+
+.modal-table-wrapper .table { margin: 0; }
+.modal-table-wrapper th {
+    padding: 11px;
+    border-color: var(--db-border);
+    background: #f8fafc !important;
+    color: var(--db-ink-soft);
+    font-size: .7rem;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.modal-table-wrapper td {
+    padding: 11px;
+    border-color: var(--db-border);
+    color: var(--db-ink);
+    font-size: .75rem;
 }
 
 /* ── Action buttons row ──────────────────────────────────────────────────── */
@@ -59,17 +110,49 @@ ul {
     justify-content: flex-end;
     flex-wrap: wrap;
     gap: 8px;
-    padding: 0 8px;
+    margin-top: 20px;
+    padding: 0;
+}
+
+.orders-actions-buttons .btn {
+    min-height: 42px;
+    margin: 0 !important;
+    padding-inline: 16px;
+    border-radius: 11px;
+    font-size: .78rem;
+    font-weight: 800;
+}
+
+.modal-loading {
+    display: flex;
+    align-items: center;
+    min-height: 260px;
+    flex-direction: column;
+    justify-content: center;
+    padding: 32px;
+    background: #fff;
+}
+
+.modal-loading__message {
+    margin-top: 14px;
+    color: var(--db-ink);
+    font-size: 1rem;
+    font-weight: 800;
+    text-align: center;
 }
 
 /* ── Responsive: stack client grid on narrow screens ─────────────────────── */
 @media (max-width: 600px) {
     .db.modals.orders {
-        width: 98%;
-        max-height: 95vh;
-        margin-top: 4px;
+        padding: 18px 14px;
     }
     .modal-orders-client-infos {
         grid-template-columns: 1fr;
     }
+
+    .orders-actions-buttons {
+        flex-direction: column-reverse;
+    }
+
+    .orders-actions-buttons .btn { width: 100%; }
 }

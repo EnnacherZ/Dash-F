@@ -4,7 +4,7 @@ import { selectedLang } from "@/utils/i18n";
 import { useTranslation } from "react-i18next";
 import { useLangContext } from "@/contexts/LanguageContext";
 import "./SidebarPhoneNav.css";
-import { FaSignOutAlt, FaHome } from "react-icons/fa";
+import { FaSignOutAlt, FaHome, FaTag } from "react-icons/fa";
 import { MdLanguage, MdOutlineEmail, MdOutlineSettings } from "react-icons/md";
 import { useAuth } from "@/contexts/Authentication";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -96,6 +96,7 @@ const SidebarPhoneNav : React.FC = () => {
             <li className={`my-1 rounded ${actual.toLowerCase()=='orders'&&'DbIsClicked'}`} onClick={()=>{navigate("/Orders"); setSidebar(false);}}><BsInboxesFill className="me-2"/> {t('nav.orders')} </li>
             <li className={`my-1 rounded ${actual.toLowerCase()=='deficiency'&&'DbIsClicked'}`} onClick={()=>{navigate("/Deficiency"); setSidebar(false);}}><FaArrowDownWideShort className="me-2"/> {t('admin.deficiency.title')} </li>
             <li className={`my-1 rounded ${actual.toLowerCase()=='productmanager'&&'DbIsClicked'}`} onClick={()=>{navigate('/ProductManager'); setSidebar(false);}}><LiaShoePrintsSolid className="me-2"/> {t('admin.product.management')}</li>
+            {user?.role !== 'delivery' && <li className={`my-1 rounded ${actual.toLowerCase()=='promotions'&&'DbIsClicked'}`} onClick={()=>{navigate('/Promotions'); setSidebar(false);}}><FaTag className="me-2"/> {t('nav.promotions')}</li>}
             <div className={`my-2 rounded db-sidebar-action db-statistics-btn ${actual.toLowerCase()=='statistics'&&'DbIsClicked'}`} onClick={()=>{navigate("/Statistics"); setSidebar(false);}}>
                 <span className="db-sidebar-action-icon db-sidebar-action-icon--stats"><ImStatsDots/></span>
                 <span>{t('nav.statistics')}</span>

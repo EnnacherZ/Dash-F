@@ -15,48 +15,624 @@ import { wait } from "@/utils/general";
 import { useParametersContext } from "../contexts/ParametersContext";
 import { useAuth } from "../contexts/Authentication";
 import ConfirmDeleteModal from "@/components/modals/ConfirmDeleteModal";
-import { FaTrash } from "react-icons/fa6";
+import ModalBackdrop from "@/components/modals/ModalBackdrop";
+import { FaPen, FaSpinner, FaTrash, FaUserShield } from "react-icons/fa6";
+import {
+    FaEnvelope,
+    FaFacebook,
+    FaInstagram,
+    FaPhoneAlt,
+    FaStore,
+    FaTags,
+    FaTiktok,
+    FaUserPlus,
+    FaUsers,
+    FaWhatsapp,
+    FaYoutube,
+} from "react-icons/fa";
 import { isAxiosError } from "axios";
 
 const connecter = apiInstance;
+
+const dashboardApiError = (error: unknown, fallback: string): string => {
+    if (!isAxiosError(error)) return fallback;
+    const data = error.response?.data as Record<string, unknown> | undefined;
+    if (!data) return fallback;
+    if (typeof data.detail === 'string') return data.detail;
+    const firstValue = Object.values(data)[0];
+    if (typeof firstValue === 'string') return firstValue;
+    if (Array.isArray(firstValue) && typeof firstValue[0] === 'string') return firstValue[0];
+    return fallback;
+};
+
+const SettingsPanelTitle: React.FC<{
+    icon: React.ReactNode;
+    title: string;
+    description: string;
+}> = ({icon, title, description}) => (
+    <span className="settings-panel-title">
+        <span className="settings-panel-title__icon" aria-hidden>{icon}</span>
+        <span className="settings-panel-title__copy">
+            <strong>{title}</strong>
+            <small>{description}</small>
+        </span>
+    </span>
+);
 
 const Settings : React.FC = () => {
     const {t} = useTranslation();
     const {user} = useAuth();
     const {currentLang} = useLangContext();
+    const {productTypes = [], categories = {}} = useParametersContext();
+    const isAdmin = user?.role === 'admin';
+    const canManageStorefront = user?.role === 'admin' || user?.role === 'manager';
+    const categoryCount = Object.values(categories).reduce((total, items) => total + items.length, 0);
+
     return(<>
         <Sidebar/>
         <div className={`db-settings ${selectedLang(currentLang)=='ar'&&'rtl'}`}>
             <DbHeader/>
-            <hr/>
-            <div className="Prod-manage-title m-4 fw-bold">
-                <GiSettingsKnobs size={20}/> <span className="mx-3">{t('product.settings')} </span>
-            </div>
-            <Accordion>
-                <Accordion.Item eventKey="0" className="my-3 rounded card shadow">
-                    <ProductTypes/>
-                </Accordion.Item>
-                <Accordion.Item eventKey="1" className="my-3 rounded card shadow">
-                    <ProductParameters param="categories"/>
-                </Accordion.Item>
-
-                {user?.role == 'admin' ? <>
-                    <hr/>
-                    <div className="Prod-manage-title m-4 fw-bold">
-                        <GiSettingsKnobs size={20}/> <span className="mx-3">{t('admin.users.manager')} </span>
+            <main className="settings-page-content">
+                <header className="settings-hero">
+                    <div className="settings-hero__main">
+                        <span className="settings-hero__icon" aria-hidden><GiSettingsKnobs/></span>
+                        <div>
+                            <span className="settings-hero__eyebrow">{t('settingsUi.eyebrow')}</span>
+                            <h1>{t('settingsUi.title')}</h1>
+                            <p>{t('settingsUi.description')}</p>
+                        </div>
                     </div>
-                    <Accordion.Item eventKey="2" className="my-3 rounded card shadow">
-                        <Accordion.Header><span className="fw-bold mx-2">{t('admin.users.add')}</span></Accordion.Header>
-                        <Accordion.Body>
-                            <AddUser/>
-                        </Accordion.Body>
-                    </Accordion.Item>
+                    <div className="settings-hero__summary">
+                        <div><strong>{productTypes.length}</strong><span>{t('settingsUi.types')}</span></div>
+                        <div><strong>{categoryCount}</strong><span>{t('settingsUi.categories')}</span></div>
+                        <div><strong>{isAdmin ? t('admin.users.admin_role') : t('admin.users.manager_role')}</strong><span>{t('settingsUi.access')}</span></div>
+                    </div>
+                </header>
 
-                </> : <></>}
-            </Accordion>
+                {canManageStorefront && (
+                    <section className="settings-group">
+                        <div className="settings-group__heading">
+                            <span className="settings-group__icon settings-group__icon--store"><FaStore/></span>
+                            <div>
+                                <h2>{t('settingsUi.storefrontTitle')}</h2>
+                                <p>{t('settingsUi.storefrontDescription')}</p>
+                            </div>
+                        </div>
+                        <Accordion className="settings-accordion" defaultActiveKey="site-contact">
+                            <Accordion.Item eventKey="site-contact" className="settings-panel">
+                                <SiteContactSettings/>
+                            </Accordion.Item>
+                        </Accordion>
+                    </section>
+                )}
+
+                <section className="settings-group">
+                    <div className="settings-group__heading">
+                        <span className="settings-group__icon settings-group__icon--catalog"><FaTags/></span>
+                        <div>
+                            <h2>{t('settingsUi.catalogTitle')}</h2>
+                            <p>{t('settingsUi.catalogDescription')}</p>
+                        </div>
+                    </div>
+                    <Accordion className="settings-accordion" defaultActiveKey="product-types">
+                        <Accordion.Item eventKey="product-types" className="settings-panel">
+                            <ProductTypes/>
+                        </Accordion.Item>
+                        <Accordion.Item eventKey="categories" className="settings-panel">
+                            <ProductParameters param="categories"/>
+                        </Accordion.Item>
+                    </Accordion>
+                </section>
+
+                {isAdmin && (
+                    <section className="settings-group">
+                        <div className="settings-group__heading">
+                            <span className="settings-group__icon settings-group__icon--team"><FaUsers/></span>
+                            <div>
+                                <h2>{t('settingsUi.teamTitle')}</h2>
+                                <p>{t('settingsUi.teamDescription')}</p>
+                            </div>
+                        </div>
+                        <Accordion className="settings-accordion" defaultActiveKey="users-list">
+                            <Accordion.Item eventKey="users-list" className="settings-panel">
+                                <DashboardUsersList/>
+                            </Accordion.Item>
+                            <Accordion.Item eventKey="add-user" className="settings-panel">
+                                <Accordion.Header>
+                                    <SettingsPanelTitle
+                                        icon={<FaUserPlus/>}
+                                        title={t('admin.users.add')}
+                                        description={t('settingsUi.addUserDescription')}
+                                    />
+                                </Accordion.Header>
+                                <Accordion.Body><AddUser/></Accordion.Body>
+                            </Accordion.Item>
+                        </Accordion>
+                    </section>
+                )}
+            </main>
         </div>
     </>)
 }
+
+
+interface SiteSettingsData {
+    contact_email: string;
+    phone_number: string;
+    facebook_url: string;
+    instagram_url: string;
+    whatsapp_url: string;
+    tiktok_url: string;
+    youtube_url: string;
+    updated_at?: string;
+}
+
+const EMPTY_SITE_SETTINGS: SiteSettingsData = {
+    contact_email: '',
+    phone_number: '',
+    facebook_url: '',
+    instagram_url: '',
+    whatsapp_url: '',
+    tiktok_url: '',
+    youtube_url: '',
+};
+
+const SiteContactSettings: React.FC = () => {
+    const {t} = useTranslation();
+    const [settings, setSettings] = useState<SiteSettingsData>(EMPTY_SITE_SETTINGS);
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState(false);
+
+    useEffect(() => {
+        let active = true;
+        connecter.get<SiteSettingsData>('db/site-settings/')
+            .then(({data}) => {
+                if (active) setSettings({...EMPTY_SITE_SETTINGS, ...data});
+            })
+            .catch(() => {
+                if (active) showToast(t('siteSettings.loadError'), 'error');
+            })
+            .finally(() => {
+                if (active) setLoading(false);
+            });
+        return () => { active = false; };
+    }, [t]);
+
+    const updateField = (field: keyof SiteSettingsData, value: string) => {
+        setSettings((current) => ({...current, [field]: value}));
+    };
+
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        setSaving(true);
+        try {
+            const payload = Object.fromEntries(
+                Object.entries(settings)
+                    .filter(([key]) => key !== 'updated_at')
+                    .map(([key, value]) => [key, typeof value === 'string' ? value.trim() : value]),
+            );
+            const {data} = await connecter.patch<SiteSettingsData>('db/site-settings/', payload);
+            setSettings({...EMPTY_SITE_SETTINGS, ...data});
+            showToast(t('siteSettings.saved'), 'success');
+        } catch {
+            showToast(t('siteSettings.saveError'), 'error');
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    const fields: Array<{
+        key: keyof SiteSettingsData;
+        label: string;
+        placeholder: string;
+        type: 'email' | 'tel' | 'url';
+        icon: React.ReactNode;
+        group: 'contact' | 'social';
+    }> = [
+        {key: 'contact_email', label: t('siteSettings.email'), placeholder: 'contact@example.com', type: 'email', icon: <FaEnvelope/>, group: 'contact'},
+        {key: 'phone_number', label: t('siteSettings.phone'), placeholder: '+212 600 000 000', type: 'tel', icon: <FaPhoneAlt/>, group: 'contact'},
+        {key: 'facebook_url', label: 'Facebook', placeholder: 'https://facebook.com/your-page', type: 'url', icon: <FaFacebook/>, group: 'social'},
+        {key: 'instagram_url', label: 'Instagram', placeholder: 'https://instagram.com/your-page', type: 'url', icon: <FaInstagram/>, group: 'social'},
+        {key: 'whatsapp_url', label: 'WhatsApp', placeholder: 'https://wa.me/212600000000', type: 'url', icon: <FaWhatsapp/>, group: 'social'},
+        {key: 'tiktok_url', label: 'TikTok', placeholder: 'https://tiktok.com/@your-page', type: 'url', icon: <FaTiktok/>, group: 'social'},
+        {key: 'youtube_url', label: 'YouTube', placeholder: 'https://youtube.com/@your-channel', type: 'url', icon: <FaYoutube/>, group: 'social'},
+    ];
+
+    const renderFields = (group: 'contact' | 'social') => (
+        <div className="site-settings-grid">
+            {fields.filter((field) => field.group === group).map((field) => (
+                <label className="site-settings-field" key={field.key}>
+                    <span className="site-settings-field__label">
+                        <span className="site-settings-field__icon" aria-hidden>{field.icon}</span>
+                        {field.label}
+                    </span>
+                    <input
+                        className="form-control"
+                        type={field.type}
+                        value={settings[field.key] ?? ''}
+                        placeholder={field.placeholder}
+                        disabled={loading || saving}
+                        onChange={(event) => updateField(field.key, event.target.value)}
+                    />
+                </label>
+            ))}
+        </div>
+    );
+
+    return (<>
+        <Accordion.Header>
+            <SettingsPanelTitle
+                icon={<FaStore/>}
+                title={t('siteSettings.title')}
+                description={t('settingsUi.footerPanelDescription')}
+            />
+        </Accordion.Header>
+        <Accordion.Body>
+            <form className="site-settings-form" onSubmit={handleSubmit}>
+                <p className="site-settings-intro">{t('siteSettings.description')}</p>
+
+                <section className="site-settings-section">
+                    <h3>{t('siteSettings.contactSection')}</h3>
+                    {renderFields('contact')}
+                </section>
+
+                <section className="site-settings-section">
+                    <div className="site-settings-section__heading">
+                        <h3>{t('siteSettings.socialSection')}</h3>
+                        <span>{t('siteSettings.optionalHint')}</span>
+                    </div>
+                    {renderFields('social')}
+                </section>
+
+                <div className="site-settings-actions">
+                    <button className="btn btn-primary" type="submit" disabled={loading || saving}>
+                        {loading ? t('ui.loading') : saving ? t('siteSettings.saving') : t('siteSettings.save')}
+                    </button>
+                    {settings.updated_at && !loading && (
+                        <span className="site-settings-updated">
+                            {t('siteSettings.lastUpdated', {date: new Date(settings.updated_at).toLocaleString()})}
+                        </span>
+                    )}
+                </div>
+            </form>
+        </Accordion.Body>
+    </>);
+};
+
+
+interface DashboardUserData {
+    id: number;
+    username: string;
+    role: 'admin' | 'manager' | 'delivery';
+    image?: string | null;
+    first_name: string;
+    last_name: string;
+    email?: string;
+    is_active: boolean;
+    date_joined: string;
+}
+
+const DashboardUsersList: React.FC = () => {
+    const {t} = useTranslation();
+    const {user: currentUser} = useAuth();
+    const {currentLang} = useLangContext();
+    const [users, setUsers] = useState<DashboardUserData[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState(false);
+    const [editingUser, setEditingUser] = useState<DashboardUserData | null>(null);
+    const [deletingUser, setDeletingUser] = useState<DashboardUserData | null>(null);
+    const [deleting, setDeleting] = useState(false);
+
+    const loadUsers = async () => {
+        setLoading(true);
+        setLoadError(false);
+        try {
+            const {data} = await connecter.get<DashboardUserData[]>('db/users/');
+            setUsers(data);
+        } catch {
+            setLoadError(true);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        void loadUsers();
+    }, []);
+
+    const roleLabel = (role: DashboardUserData['role']) => ({
+        admin: t('admin.users.admin_role'),
+        manager: t('admin.users.manager_role'),
+        delivery: t('admin.users.deliveryMan'),
+    })[role];
+
+    const locale = selectedLang(currentLang) === 'ar'
+        ? 'ar-MA'
+        : selectedLang(currentLang) === 'fr' ? 'fr-MA' : 'en-GB';
+
+    const handleDelete = async () => {
+        if (!deletingUser) return;
+        setDeleting(true);
+        try {
+            await connecter.delete(`db/users/${deletingUser.id}/`);
+            setUsers((current) => current.filter((item) => item.id !== deletingUser.id));
+            showToast(t('admin.users.deleted'), 'success');
+            setDeletingUser(null);
+        } catch (error: unknown) {
+            showToast(dashboardApiError(error, t('admin.users.deleteError')), 'error');
+        } finally {
+            setDeleting(false);
+        }
+    };
+
+    return (<>
+        <Accordion.Header>
+            <SettingsPanelTitle
+                icon={<FaUsers/>}
+                title={t('admin.users.list')}
+                description={t('admin.users.listDescription')}
+            />
+        </Accordion.Header>
+        <Accordion.Body>
+            <div className="settings-users-toolbar">
+                <div>
+                    <strong>{t('admin.users.staffCount', {count: users.length})}</strong>
+                    <p>{t('admin.users.listDescription')}</p>
+                </div>
+            </div>
+
+            {loading && (
+                <div className="settings-users-grid" aria-label={t('ui.loading')}>
+                    {[0, 1, 2].map((item) => <div className="settings-user-card settings-user-card--loading" key={item}/>) }
+                </div>
+            )}
+
+            {!loading && loadError && (
+                <div className="settings-users-error" role="alert">
+                    <span>{t('admin.users.loadError')}</span>
+                    <button type="button" className="btn btn-outline-primary btn-sm" onClick={loadUsers}>
+                        {t('admin.users.retry')}
+                    </button>
+                </div>
+            )}
+
+            {!loading && !loadError && users.length === 0 && (
+                <p className="settings-users-empty">{t('admin.users.noUsers')}</p>
+            )}
+
+            {!loading && !loadError && users.length > 0 && (
+                <div className="settings-users-grid">
+                    {users.map((dashboardUser) => {
+                        const fullName = `${dashboardUser.first_name} ${dashboardUser.last_name}`.trim();
+                        const initials = (fullName || dashboardUser.username)
+                            .split(/\s+/)
+                            .slice(0, 2)
+                            .map((part) => part[0]?.toUpperCase())
+                            .join('');
+                        const isCurrent = dashboardUser.id === currentUser?.id;
+
+                        return (
+                            <article className="settings-user-card" key={dashboardUser.id}>
+                                <div className="settings-user-avatar" aria-hidden>
+                                    {dashboardUser.image
+                                        ? <img src={dashboardUser.image} alt=""/>
+                                        : <span>{initials}</span>}
+                                    <i className={dashboardUser.is_active ? 'is-active' : 'is-inactive'}/>
+                                </div>
+                                <div className="settings-user-details">
+                                    <div className="settings-user-name-row">
+                                        <h4>{fullName || dashboardUser.username}</h4>
+                                        {isCurrent && <span className="settings-user-you">{t('admin.users.you')}</span>}
+                                    </div>
+                                    <p>@{dashboardUser.username}</p>
+                                    {dashboardUser.email && <a href={`mailto:${dashboardUser.email}`}>{dashboardUser.email}</a>}
+                                    <span className="settings-user-joined">
+                                        {t('admin.users.joined', {
+                                            date: new Intl.DateTimeFormat(locale, {dateStyle: 'medium'}).format(new Date(dashboardUser.date_joined)),
+                                        })}
+                                    </span>
+                                </div>
+                                <div className="settings-user-meta">
+                                    <span className={`settings-user-role settings-user-role--${dashboardUser.role}`}>
+                                        {roleLabel(dashboardUser.role)}
+                                    </span>
+                                    <span className={dashboardUser.is_active ? 'settings-user-status is-active' : 'settings-user-status is-inactive'}>
+                                        {dashboardUser.is_active ? t('admin.users.active') : t('admin.users.inactive')}
+                                    </span>
+                                    <div className="settings-user-actions">
+                                        <button
+                                            type="button"
+                                            className="settings-user-action settings-user-action--edit"
+                                            onClick={() => setEditingUser(dashboardUser)}
+                                            aria-label={`${t('admin.users.edit')} ${fullName || dashboardUser.username}`}
+                                        >
+                                            <FaPen aria-hidden/>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            className="settings-user-action settings-user-action--delete"
+                                            onClick={() => setDeletingUser(dashboardUser)}
+                                            disabled={isCurrent}
+                                            title={isCurrent ? t('admin.users.cannotDeleteSelf') : t('admin.users.delete')}
+                                            aria-label={`${t('admin.users.delete')} ${fullName || dashboardUser.username}`}
+                                        >
+                                            <FaTrash aria-hidden/>
+                                        </button>
+                                    </div>
+                                </div>
+                            </article>
+                        );
+                    })}
+                </div>
+            )}
+            <EditDashboardUserModal
+                user={editingUser}
+                currentUserId={currentUser?.id}
+                onClose={() => setEditingUser(null)}
+                onSaved={(updated) => {
+                    setUsers((current) => current.map((item) => item.id === updated.id ? updated : item));
+                    setEditingUser(null);
+                }}
+            />
+            <ConfirmDeleteModal
+                open={deletingUser !== null}
+                title={t('admin.users.deleteTitle')}
+                message={t('admin.users.deleteWarning')}
+                itemLabel={deletingUser ? `${deletingUser.first_name} ${deletingUser.last_name} (@${deletingUser.username})`.trim() : undefined}
+                requireText={deletingUser?.username}
+                requireTextLabel={t('admin.users.typeUsernameToDelete')}
+                confirmLabel={t('admin.users.delete')}
+                cancelLabel={t('ui.cancel')}
+                loading={deleting}
+                onConfirm={handleDelete}
+                onClose={() => !deleting && setDeletingUser(null)}
+            />
+        </Accordion.Body>
+    </>);
+};
+
+
+const EditDashboardUserModal: React.FC<{
+    user: DashboardUserData | null;
+    currentUserId?: number;
+    onClose: () => void;
+    onSaved: (user: DashboardUserData) => void;
+}> = ({user, currentUserId, onClose, onSaved}) => {
+    const {t} = useTranslation();
+    const [draft, setDraft] = useState<DashboardUserData | null>(user);
+    const [password, setPassword] = useState('');
+    const [passwordConfirm, setPasswordConfirm] = useState('');
+    const [saving, setSaving] = useState(false);
+    const [error, setError] = useState('');
+
+    useEffect(() => {
+        setDraft(user);
+        setPassword('');
+        setPasswordConfirm('');
+        setError('');
+    }, [user]);
+
+    if (!draft) return null;
+    const isSelf = user?.id === currentUserId;
+    const passwordMismatch = Boolean(password || passwordConfirm) && password !== passwordConfirm;
+
+    const setField = <K extends keyof DashboardUserData>(field: K, value: DashboardUserData[K]) => {
+        setDraft((current) => current ? {...current, [field]: value} : current);
+    };
+
+    const handleSubmit = async (event: React.FormEvent) => {
+        event.preventDefault();
+        if (passwordMismatch) {
+            setError(t('admin.users.passwordMismatch'));
+            return;
+        }
+        setSaving(true);
+        setError('');
+        try {
+            const payload: Record<string, unknown> = {
+                username: draft.username.trim(),
+                first_name: draft.first_name.trim(),
+                last_name: draft.last_name.trim(),
+                email: draft.email?.trim() ?? '',
+                role: draft.role,
+                is_active: draft.is_active,
+            };
+            if (password) payload.password = password;
+            const {data} = await connecter.patch<DashboardUserData>(`db/users/${draft.id}/`, payload);
+            showToast(t('admin.users.updated'), 'success');
+            onSaved(data);
+        } catch (apiError: unknown) {
+            setError(dashboardApiError(apiError, t('admin.users.updateError')));
+        } finally {
+            setSaving(false);
+        }
+    };
+
+    return (
+        <ModalBackdrop
+            onOpen={user !== null}
+            onClose={onClose}
+            dismissible={!saving}
+            size="md"
+            label={t('admin.users.editTitle')}
+        >
+            <form className="user-edit-modal" onSubmit={handleSubmit}>
+                <header className="user-edit-modal__header">
+                    <span><FaUserShield aria-hidden/></span>
+                    <div>
+                        <h2>{t('admin.users.editTitle')}</h2>
+                        <p>{t('admin.users.editDescription')}</p>
+                    </div>
+                </header>
+
+                {isSelf && <div className="user-edit-modal__notice">{t('admin.users.selfProtection')}</div>}
+                {error && <div className="user-edit-modal__error" role="alert">{error}</div>}
+
+                <div className="user-edit-modal__grid">
+                    <label>
+                        <span>{t('form.firstName.label')}</span>
+                        <input className="form-control" value={draft.first_name} onChange={(e) => setField('first_name', e.target.value)} required/>
+                    </label>
+                    <label>
+                        <span>{t('form.lastName.label')}</span>
+                        <input className="form-control" value={draft.last_name} onChange={(e) => setField('last_name', e.target.value)} required/>
+                    </label>
+                    <label>
+                        <span>{t('admin.users.username')}</span>
+                        <input className="form-control" value={draft.username} onChange={(e) => setField('username', e.target.value)} required/>
+                    </label>
+                    <label>
+                        <span>{t('form.email.label')}</span>
+                        <input type="email" className="form-control" value={draft.email ?? ''} onChange={(e) => setField('email', e.target.value)}/>
+                    </label>
+                    <label>
+                        <span>{t('admin.users.role')}</span>
+                        <select className="form-select" value={draft.role} onChange={(e) => setField('role', e.target.value as DashboardUserData['role'])} disabled={isSelf}>
+                            {usersRoles(t).map((role) => <option value={role.roleValue} key={role.roleValue}>{role.roleName}</option>)}
+                        </select>
+                    </label>
+                    <label className="user-edit-modal__status">
+                        <span>{t('admin.users.accountStatus')}</span>
+                        <button
+                            type="button"
+                            className={draft.is_active ? 'user-status-toggle is-active' : 'user-status-toggle'}
+                            onClick={() => setField('is_active', !draft.is_active)}
+                            disabled={isSelf}
+                            aria-pressed={draft.is_active}
+                        >
+                            <i/><b>{draft.is_active ? t('admin.users.active') : t('admin.users.inactive')}</b>
+                        </button>
+                    </label>
+                </div>
+
+                <div className="user-edit-modal__password">
+                    <div>
+                        <strong>{t('admin.users.passwordReset')}</strong>
+                        <span>{t('admin.users.passwordOptional')}</span>
+                    </div>
+                    <div className="user-edit-modal__grid">
+                        <label>
+                            <span>{t('admin.users.newPassword')}</span>
+                            <input type="password" className="form-control" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="new-password"/>
+                        </label>
+                        <label>
+                            <span>{t('admin.users.confirmPassword')}</span>
+                            <input type="password" className={`form-control ${passwordMismatch ? 'is-invalid' : ''}`} value={passwordConfirm} onChange={(e) => setPasswordConfirm(e.target.value)} autoComplete="new-password"/>
+                        </label>
+                    </div>
+                </div>
+
+                <footer className="user-edit-modal__actions">
+                    <button type="button" className="btn btn-secondary" onClick={onClose} disabled={saving}>{t('ui.cancel')}</button>
+                    <button type="submit" className="btn btn-primary" disabled={saving || passwordMismatch}>
+                        {saving && <FaSpinner className="confirm-modal__spinner" aria-hidden/>}
+                        {saving ? t('admin.users.saving') : t('admin.users.saveChanges')}
+                    </button>
+                </footer>
+            </form>
+        </ModalBackdrop>
+    );
+};
 
 
 const ProductParameters : React.FC<{param:string}> = ({param}) => {
@@ -122,7 +698,13 @@ const ProductParameters : React.FC<{param:string}> = ({param}) => {
     };
 
     return(<>
-        <Accordion.Header><span className="fw-bold mx-2">{t('admin.product.addCategories')}</span></Accordion.Header>
+        <Accordion.Header>
+            <SettingsPanelTitle
+                icon={<FaTags/>}
+                title={t('admin.product.addCategories')}
+                description={t('settingsUi.categoriesPanelDescription')}
+            />
+        </Accordion.Header>
         <Accordion.Body>
             <form onSubmit={handlePostParameters}>
                 <div className="mb-3">
@@ -224,7 +806,13 @@ const ProductTypes : React.FC = () => {
     };
 
     return(<>
-        <Accordion.Header><span className="fw-bold mx-2">{t('admin.product.addTypes')}</span></Accordion.Header>
+        <Accordion.Header>
+            <SettingsPanelTitle
+                icon={<GiSettingsKnobs/>}
+                title={t('admin.product.addTypes')}
+                description={t('settingsUi.typesPanelDescription')}
+            />
+        </Accordion.Header>
         <Accordion.Body>
             <form onSubmit={handlePostParameters}>
                 <div className="mb-3">
@@ -272,6 +860,7 @@ const ProductTypes : React.FC = () => {
 const AddUser = () => {
     const {t} = useTranslation();
     const [username, setUsername] = useState<string>('');
+    const [email, setEmail] = useState<string>('');
     const [role, setRole] = useState<string>('');
     const [firstname, setFirstname] = useState<string>('');
     const [lastname, setLastname] = useState<string>('');
@@ -317,6 +906,7 @@ const AddUser = () => {
             formData.append('first_name', firstname);
             formData.append('last_name', lastname);
             formData.append('username', username);
+            formData.append('email', email);
             formData.append('password', password);
             formData.append('role', role);
             if(image){ formData.append('image', image); }
@@ -358,6 +948,10 @@ const AddUser = () => {
         <div className="mb-3">
             <label className="form-label">{t('admin.users.username')} :</label>
             <input type="text" className="form-control" value={username} onChange={(e) => setUsername(e.target.value)} required/>
+        </div>
+        <div className="mb-3">
+            <label className="form-label">{t('form.email.label')} :</label>
+            <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)}/>
         </div>
         <div className="mb-3">
             <label className="form-label">{t('admin.users.password')} :</label>
