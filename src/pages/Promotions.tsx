@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { isAxiosError } from "axios";
 import { FaCheck, FaPen, FaPlus, FaTag, FaTrash, FaXmark } from "react-icons/fa6";
-import { toast } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
@@ -12,6 +11,7 @@ import { useLangContext } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/Authentication";
 import { selectedLang } from "@/utils/i18n";
 import "@/styles/promotions.css";
+import { showToast } from "@/utils/toast";
 
 type DiscountType = "percentage" | "fixed";
 
@@ -82,7 +82,7 @@ const Promotions: React.FC = () => {
       const response = await apiInstance.get<PromotionCode[]>("db/promotions/");
       setPromotions(response.data);
     } catch (error) {
-      toast.error(apiError(error, t("promoAdmin.loadError")));
+      showToast(apiError(error, t("promoAdmin.loadError")), "error");
     } finally {
       setLoading(false);
     }
@@ -123,7 +123,7 @@ const Promotions: React.FC = () => {
   const savePromotion = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!form.code.trim() || !form.value) {
-      toast.error(t("promoAdmin.required"));
+      showToast(t("promoAdmin.required"), "warning");
       return;
     }
     setSaving(true);
@@ -138,15 +138,15 @@ const Promotions: React.FC = () => {
     try {
       if (editingId) {
         await apiInstance.patch(`db/promotions/${editingId}/`, payload);
-        toast.success(t("promoAdmin.updated"));
+        showToast(t("promoAdmin.updated"), "success");
       } else {
         await apiInstance.post("db/promotions/", payload);
-        toast.success(t("promoAdmin.created"));
+        showToast(t("promoAdmin.created"), "success");
       }
       resetForm();
       await loadPromotions();
     } catch (error) {
-      toast.error(apiError(error, t("promoAdmin.saveError")));
+      showToast(apiError(error, t("promoAdmin.saveError")), "error");
     } finally {
       setSaving(false);
     }
@@ -160,9 +160,9 @@ const Promotions: React.FC = () => {
       setPromotions((current) => current.map((item) => (
         item.id === promotion.id ? response.data : item
       )));
-      toast.success(t(response.data.active ? "promoAdmin.activated" : "promoAdmin.deactivated"));
+      showToast(t(response.data.active ? "promoAdmin.activated" : "promoAdmin.deactivated"), "success");
     } catch (error) {
-      toast.error(apiError(error, t("promoAdmin.saveError")));
+      showToast(apiError(error, t("promoAdmin.saveError")), "error");
     }
   };
 
@@ -172,9 +172,9 @@ const Promotions: React.FC = () => {
       setPromotions((current) => current.filter((promotion) => promotion.id !== id));
       setDeletingId(null);
       if (editingId === id) resetForm();
-      toast.success(t("promoAdmin.deleted"));
+      showToast(t("promoAdmin.deleted"), "success");
     } catch (error) {
-      toast.error(apiError(error, t("promoAdmin.deleteError")));
+      showToast(apiError(error, t("promoAdmin.deleteError")), "error");
     }
   };
 

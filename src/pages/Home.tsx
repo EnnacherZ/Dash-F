@@ -21,7 +21,7 @@ import { AnimatePresence } from "framer-motion";
 import { useDeficiencies, type Deficiency } from "../server/deficiencies";
 import { useLangContext } from "../contexts/LanguageContext";
 import EmptyState from "../components/EmptyState";
-import { toast, ToastContainer, Zoom } from "react-toastify";
+import { showToast } from "@/utils/toast";
 import { goToNewBlank } from "@/utils/navigation";
 import { selectedLang } from "@/utils/i18n";
 import { showDeficienciesDesktopTable, showDeficienciesPhoneTable } from "@/components/tables/DeficienciesTable";
@@ -86,17 +86,7 @@ const DBHome: React.FC = () => {
 
   const processOrder = (ord: DashboardOrder) => {
     if (ord.exception) {
-      toast.error(t("admin.deficiency.message"), {
-        position:        "top-center",
-        autoClose:       2000,
-        hideProgressBar: false,
-        closeOnClick:    false,
-        pauseOnHover:    false,
-        draggable:       true,
-        progress:        undefined,
-        theme:           "colored",
-        transition:      Zoom,
-      });
+      showToast(t("admin.deficiency.message"), "warning");
     } else {
       orderOnClick(ord);
     }
@@ -206,7 +196,6 @@ const DBHome: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <ToastContainer />
     </>
   );
 };

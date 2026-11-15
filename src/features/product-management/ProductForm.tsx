@@ -47,9 +47,24 @@ const ProductForm: React.FC = () => {
     }, [images]);
 
     const handleImagesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files) {
-            setImages(Array.from(e.target.files).slice(0, 4));
+        if (!e.target.files) return;
+
+        const selectedFiles = Array.from(e.target.files);
+        const imageFiles = selectedFiles.filter(file => file.type.startsWith('image/'));
+
+        if (imageFiles.length !== selectedFiles.length) {
+            showToast(t('admin.product.invalidFiles'), "error");
         }
+
+        if (images.length + imageFiles.length > 4) {
+            showToast(t('admin.product.tooManyImages'), "error");
+            e.target.value = '';
+            return;
+        }
+
+        setImages(previousImages => [...previousImages, ...imageFiles]);
+        // Allow selecting the same filename again after removing it.
+        e.target.value = '';
     };
 
     const removeImage = (index: number) => {

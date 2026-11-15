@@ -20,7 +20,6 @@ import { useTranslation } from "react-i18next";
 import { useOrders } from "../server/orders";
 import { IoWarning } from "react-icons/io5";
 import { MdOutlineFileDownloadDone } from "react-icons/md";
-import { ToastContainer } from "react-toastify";
 import EmptyState from "../components/EmptyState";
 import { AnimatePresence } from "framer-motion";
 import { goToNewBlank } from "@/utils/navigation";
@@ -250,7 +249,6 @@ const Orders: React.FC = () => {
         onConfirm={deleteOrder}
         onClose={() => setOrderToDelete(null)}
       />
-      <ToastContainer />
     </>
   );
 };

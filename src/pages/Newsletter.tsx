@@ -10,7 +10,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import Sidebar from "@/layout/Sidebar";
 import DbHeader from "@/layout/DbHeader";
 import "@/styles/settings.css";          // reuses .db-settings layout class
-import { toast, ToastContainer } from "react-toastify";
 import { useTranslation } from "react-i18next";
 import { MdOutlineEmail } from "react-icons/md";
 import { selectedLang } from "@/utils/i18n";
@@ -18,6 +17,7 @@ import { useLangContext } from "@/contexts/LanguageContext";
 import { useAuth } from "@/contexts/Authentication";
 import apiInstance from "@/lib/api";
 import { useNavigate } from "react-router-dom";
+import { showToast } from "@/utils/toast";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -109,7 +109,7 @@ const CampaignEditor: React.FC<{
 
   const handleSave = async () => {
     if (!subject.trim() || !bodyHtml.trim()) {
-      toast.error(t("newsletter.requiredFieldsCampaign"));
+      showToast(t("newsletter.requiredFieldsCampaign"), "warning");
       return;
     }
     setSaving(true);
@@ -118,17 +118,17 @@ const CampaignEditor: React.FC<{
       const res = isEdit
         ? await apiInstance.patch<Campaign>(`db/newsletter/campaigns/${initial!.id}/`, payload)
         : await apiInstance.post<Campaign>("db/newsletter/campaigns/", payload);
-      toast.success(isEdit ? t("newsletter.updated") : t("newsletter.draftSaved"));
+      showToast(isEdit ? t("newsletter.updated") : t("newsletter.draftSaved"), "success");
       onSaved(res.data);
     } catch (err) {
-      toast.error(apiErr(err, t("newsletter.genericError")));
+      showToast(apiErr(err, t("newsletter.genericError")), "error");
     } finally {
       setSaving(false);
     }
   };
 
   const handleSend = async (test = false) => {
-    if (!initial?.id) { toast.error(t("newsletter.saveFirst")); return; }
+    if (!initial?.id) { showToast(t("newsletter.saveFirst"), "warning"); return; }
     if (test) setTestSending(true);
     else setSending(true);
     try {
@@ -137,12 +137,13 @@ const CampaignEditor: React.FC<{
       const res = await apiInstance.post<{ detail: string; sent: number; failed: number }>(
         "db/newsletter/campaigns/send/", payload
       );
-      toast.success(
-        t("newsletter.sendResult", { detail: res.data.detail, sent: res.data.sent, failed: res.data.failed })
+      showToast(
+        t("newsletter.sendResult", { detail: res.data.detail, sent: res.data.sent, failed: res.data.failed }),
+        "success",
       );
       if (!test) { onSentAll(); onCancel(); }
     } catch (err) {
-      toast.error(apiErr(err, t("newsletter.genericError")));
+      showToast(apiErr(err, t("newsletter.genericError")), "error");
     } finally {
       if (test) setTestSending(false);
       else setSending(false);
@@ -287,7 +288,7 @@ const Newsletter: React.FC = () => {
       setStats(sRes.data);
       setCampaigns(cRes.data);
     } catch {
-      toast.error(t("newsletter.loadFailed"));
+      showToast(t("newsletter.loadFailed"), "error");
     } finally {
       setLoading(false);
     }
@@ -312,9 +313,9 @@ const Newsletter: React.FC = () => {
       await apiInstance.delete(`db/newsletter/campaigns/${id}/`);
       setCampaigns((prev) => prev.filter((c) => c.id !== id));
       if (selected?.id === id) setSelected(null);
-      toast.success(t("newsletter.deleted"));
+      showToast(t("newsletter.deleted"), "success");
     } catch (err) {
-      toast.error(apiErr(err, t("newsletter.genericError")));
+      showToast(apiErr(err, t("newsletter.genericError")), "error");
     }
   };
 
@@ -413,7 +414,6 @@ const Newsletter: React.FC = () => {
           )}
         </div>
       </div>
-      <ToastContainer />
     </>
   );
 };

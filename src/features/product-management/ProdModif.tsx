@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from "react";
 import "./product-form.css";
-import { toast, ToastContainer, Zoom } from "react-toastify";
 import ConfirmActionModal from "@/components/modals/ConfirmActionModal";
 import { OptionType } from "@/pages/ProductsManager";
 import apiInstance from "@/lib/api";
@@ -135,17 +134,7 @@ const ProdModif : React.FC = () => {
                 setIsSubmitting(false);
             }
         } else {
-            toast.error(t('admin.product.checkFields', { fields: t('product.label') }), {
-                position: "top-center",
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-                transition: Zoom,
-            });
+            showToast(t('admin.product.checkFields', { fields: t('product.label') }), "error");
         }
     }
 
@@ -216,7 +205,6 @@ const ProdModif : React.FC = () => {
                 </>}
             </form>
         </div>
-        <ToastContainer/>
         <ConfirmActionModal
             open={isModal}
             title={t('admin.product.updateTitle')}

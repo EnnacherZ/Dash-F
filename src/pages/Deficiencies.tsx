@@ -21,7 +21,6 @@ import { AnimatePresence } from "framer-motion";
 import Modals from "@/components/modals/ModalSwitcher";
 import { useTranslation } from "react-i18next";
 import Loading from "../components/Loading";
-import { ToastContainer } from "react-toastify";
 
 const ExceptionsPage: React.FC = () => {
   const { t } = useTranslation();
@@ -95,7 +94,6 @@ const ExceptionsPage: React.FC = () => {
         )}
       </AnimatePresence>
 
-      <ToastContainer />
     </>
   );
 };

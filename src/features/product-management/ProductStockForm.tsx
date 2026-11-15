@@ -1,6 +1,6 @@
 import React, {useState} from "react";
 import "./product-form.css"
-import { toast, ToastContainer, Zoom } from "react-toastify";
+import { showToast } from "@/utils/toast";
 import { OptionType } from "@/pages/ProductsManager";
 import apiInstance from "@/lib/api";
 import { useTranslation } from "react-i18next";
@@ -30,17 +30,7 @@ const ProdStockForm : React.FC = () => {
 
                 if(response.status == 200){ window.location.reload(); }
             } catch {
-                toast.error(t('admin.product.actionFailed'), {
-                    position: "top-center",
-                    autoClose: 2000,
-                    hideProgressBar: false,
-                    closeOnClick: false,
-                    pauseOnHover: false,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
-                    transition: Zoom,
-                });
+                showToast(t('admin.product.actionFailed'), "error");
             }
         } else {
             const missing = [
@@ -48,17 +38,7 @@ const ProdStockForm : React.FC = () => {
                 size == '' ? t('product.size') : '',
                 quantity == 0 ? t('product.quantity') : '',
             ].filter(Boolean).join(', ');
-            toast.error(t('admin.product.checkFields', { fields: missing }), {
-                position: "top-center",
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-                transition: Zoom,
-            });
+            showToast(t('admin.product.checkFields', { fields: missing }), "error");
         }
     }
 
@@ -94,7 +74,6 @@ const ProdStockForm : React.FC = () => {
                 <button type="submit" className="btn btn-primary">{t('form.submit')}</button>
             </form>
         </div>
-        <ToastContainer/>
     </>)
 }
 

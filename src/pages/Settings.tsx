@@ -6,7 +6,6 @@ import Accordion from "react-bootstrap/esm/Accordion";
 import apiInstance from "@/lib/api";
 import { useTranslation } from "react-i18next";
 import { useLangContext } from "../contexts/LanguageContext";
-import { toast, ToastContainer, Zoom } from "react-toastify";
 import { GiSettingsKnobs } from "react-icons/gi";
 import { selectedLang } from "@/utils/i18n";
 import { showToast } from "@/utils/toast";
@@ -651,17 +650,7 @@ const ProductParameters : React.FC<{param:string}> = ({param}) => {
         const values = valuesText.split(",").map((v) => capitalize(v.trim())).filter((v) => v.length > 0);
         try {
             if(!selectedType){
-                toast.error(t('admin.product.selectTypeFirst'), {
-                    position: "top-center",
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: false,
-                    pauseOnHover: false,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
-                    transition: Zoom,
-                })
+                showToast(t('admin.product.selectTypeFirst'), "warning")
             } else {
                 const response = await connecter.post("db/products/parameters/add", {
                     productType: selectedType, param: param, values: values
@@ -760,7 +749,6 @@ const ProductParameters : React.FC<{param:string}> = ({param}) => {
             onConfirm={handleDeleteCategory}
             onClose={() => setCategoryToDelete(null)}
         />
-        <ToastContainer/>
     </>)
 };
 
@@ -889,17 +877,7 @@ const AddUser = () => {
             return
         }
         if(role == ''){
-            toast.error(t('admin.users.roleRequired'), {
-                position: "top-center",
-                autoClose: 5000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-                transition: Zoom,
-            });
+            showToast(t('admin.users.roleRequired'), "warning");
         } else {
             setLoading(true);
             const formData = new FormData();
@@ -920,17 +898,7 @@ const AddUser = () => {
                     window.location.reload();
                 }
             } catch {
-                toast.error(t('admin.users.registrationError'), {
-                    position: "top-center",
-                    autoClose: 2000,
-                    hideProgressBar: false,
-                    closeOnClick: false,
-                    pauseOnHover: false,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
-                    transition: Zoom,
-                });
+                showToast(t('admin.users.registrationError'), "error");
             }
             setLoading(false);
         }

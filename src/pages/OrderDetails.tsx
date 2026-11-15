@@ -18,7 +18,6 @@ import apiInstance from "@/lib/api";
 import Loading from "../components/Loading";
 import EmptyState from "../components/EmptyState";
 import { faWpforms } from "@fortawesome/free-brands-svg-icons";
-import { toast, ToastContainer, Zoom } from "react-toastify";
 import DeliveryForm from "../processing/DeliveryForm";
 import { useDeliveryMen } from "@/server/users";
 import type { DashboardOrder } from "@/server/orders";
@@ -111,29 +110,9 @@ const OrderDetails : React.FC = () => {
 
     const getUrl = async (ord: DashboardOrder) => {
         if(ord.exception){
-            toast.error(t('admin.deficiency.message'),{
-                position: "top-center",
-                autoClose: 2000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-                transition: Zoom,
-            })
+            showToast(t('admin.deficiency.message'), "warning")
         } else if (!selectedDeliveryMan) {
-            toast.error(t('admin.orders.deliveryManRequired'), {
-                position: "top-center",
-                autoClose: 3000,
-                hideProgressBar: false,
-                closeOnClick: false,
-                pauseOnHover: false,
-                draggable: true,
-                progress: undefined,
-                theme: "colored",
-                transition: Zoom,
-            })
+            showToast(t('admin.orders.deliveryManRequired'), "warning")
         } else {
             const actualDate = new Date();
             const clientInfos = ord.client;
@@ -183,17 +162,7 @@ const OrderDetails : React.FC = () => {
                     showToast(t('admin.orders.treated'), "success");
                 }
             } catch(error){
-                toast.error(String(error), {
-                    position: "top-center",
-                    autoClose: 5000,
-                    hideProgressBar: false,
-                    closeOnClick: false,
-                    pauseOnHover: false,
-                    draggable: true,
-                    progress: undefined,
-                    theme: "colored",
-                    transition: Zoom,
-                });
+                showToast(String(error), "error");
             } finally {
                 setIsGenerating(false);
             }
@@ -530,7 +499,6 @@ const OrderDetails : React.FC = () => {
                 </div>
             }
         </div>
-        <ToastContainer/>
     </>);
 }
 export default OrderDetails;

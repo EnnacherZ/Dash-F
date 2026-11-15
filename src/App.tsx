@@ -9,7 +9,6 @@ import React from "react";
 import "react-toastify/dist/ReactToastify.css";
 import "./App.css";
 import { motion } from "framer-motion";
-import { ToastContainer } from "react-toastify";
 import {
   Navigate,
   RouterProvider,
@@ -32,6 +31,7 @@ import OrderDetails from "./pages/OrderDetails";
 import NotFoundPage from "./pages/NotFoundPage";
 import NewsletterSection from "./pages/Newsletter";
 import Promotions from "./pages/Promotions";
+import AppToastContainer from "./components/AppToastContainer";
 
 // ── Dashboard routes ──────────────────────────────────────────────────────────
 const dashboardRouter = createBrowserRouter(
@@ -73,7 +73,7 @@ const App: React.FC = () => (
         />
       </AuthProvider>
     </ParametersContextProvider>
-    <ToastContainer />
+    <AppToastContainer />
   </motion.div>
 );
 
