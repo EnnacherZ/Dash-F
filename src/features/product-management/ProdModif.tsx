@@ -107,28 +107,38 @@ const ProdModif : React.FC = () => {
     };
 
     const handleSubmit = async () => {
-        const formData = new FormData();
         if(selectedOption){
             const prodId = selectedOption.value;
-            if(!(ref === null || ref === '' || ref === undefined)){ formData.append('ref', ref.toString()); }
-            if(!(name === null || name.trim() === '' || name === undefined)){ formData.append('name', name); }
-            if(!(category === null || category.trim() === '' || category === undefined)){ formData.append('category', category); }
-            if(!(price === null || price === '' || price === undefined)){ formData.append('price', price.toString()); }
-            if(!(promo === null || promo === '' || promo === undefined)){ formData.append('promo', promo.toString()); }
-            if (newestTouched) formData.append('newest', newest ? 'true' : 'false');
+            const formData = new FormData();
+            let hasMetadataChanges = false;
+            if(!(ref === null || ref === '' || ref === undefined)){ formData.append('ref', ref.toString()); hasMetadataChanges = true; }
+            if(!(name === null || name.trim() === '' || name === undefined)){ formData.append('name', name); hasMetadataChanges = true; }
+            if(!(category === null || category.trim() === '' || category === undefined)){ formData.append('category', category); hasMetadataChanges = true; }
+            if(!(price === null || price === '' || price === undefined)){ formData.append('price', price.toString()); hasMetadataChanges = true; }
+            if(!(promo === null || promo === '' || promo === undefined)){ formData.append('promo', promo.toString()); hasMetadataChanges = true; }
+            if (newestTouched) { formData.append('newest', newest ? 'true' : 'false'); hasMetadataChanges = true; }
             setIsSubmitting(true);
             try {
-                if (imageP) formData.append('image', await optimizeProductImage(imageP));
-                const optimizedImages = await optimizeProductImages(images);
-                optimizedImages.forEach((image, index) => formData.append(`image${index + 1}`, image));
-
-                // Let the browser add the multipart boundary required by Django.
-                const response = await connecter.patch(`db/products/manager/${prodId}/`, formData);
-                if(response.status === 200 || response.status === 201){
-                    showToast(t('admin.product.updateSuccess'), "success");
-                    setIsModal(false);
-                    window.setTimeout(() => window.location.reload(), 650);
+                // Keep every serverless request to one Cloudinary upload. A
+                // combined multi-photo PATCH can time out before Django sends
+                // its CORS-enabled response.
+                if (hasMetadataChanges) {
+                    await connecter.patch(`db/products/manager/${prodId}/`, formData);
                 }
+                if (imageP) {
+                    const primaryData = new FormData();
+                    primaryData.append('image', await optimizeProductImage(imageP));
+                    await connecter.patch(`db/products/manager/${prodId}/`, primaryData);
+                }
+                const optimizedImages = await optimizeProductImages(images);
+                for (const [index, image] of optimizedImages.entries()) {
+                    const imageData = new FormData();
+                    imageData.append(`image${index + 1}`, image);
+                    await connecter.patch(`db/products/manager/${prodId}/`, imageData);
+                }
+                showToast(t('admin.product.updateSuccess'), "success");
+                setIsModal(false);
+                window.setTimeout(() => window.location.reload(), 650);
             } catch (error) {
                 const serverMessage = isAxiosError(error)
                     ? error.response?.data?.error || error.response?.data?.detail

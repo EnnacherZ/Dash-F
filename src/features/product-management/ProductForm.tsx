@@ -95,11 +95,20 @@ const ProductForm: React.FC = () => {
         formData.append('promo', promo.toString());
         formData.append('product_type', productType);
         try {
+            // Creation needs its primary photo; upload optional photos one at
+            // a time afterward so each serverless request performs only one
+            // Cloudinary upload.
             formData.append('image', await optimizeProductImage(imageP));
-            const optimizedImages = await optimizeProductImages(images);
-            optimizedImages.forEach((image, index) => formData.append(`image${index + 1}`, image));
             const response = await connecter.post('db/products', formData);
-            if (response.status === 201) { window.location.reload(); }
+            if (response.status === 201) {
+                const optimizedImages = await optimizeProductImages(images);
+                for (const [index, image] of optimizedImages.entries()) {
+                    const imageData = new FormData();
+                    imageData.append(`image${index + 1}`, image);
+                    await connecter.patch(`db/products/manager/${response.data.id}/`, imageData);
+                }
+                window.location.reload();
+            }
         } catch (error) {
             const serverMessage = isAxiosError(error)
                 ? error.response?.data?.error || error.response?.data?.detail
