@@ -9,6 +9,8 @@ import ModalBackDrop from "@/components/modals/ModalBackdrop";
 import { useParametersContext } from '@/contexts/ParametersContext';
 import { useTranslation } from 'react-i18next';
 import { FaXmark } from 'react-icons/fa6';
+import { optimizeProductImage, optimizeProductImages } from '@/utils/productImages';
+import { isAxiosError } from 'axios';
 
 const connecter = apiInstance;
 
@@ -92,15 +94,17 @@ const ProductForm: React.FC = () => {
         formData.append('newest', newest ? 'true' : 'false');
         formData.append('promo', promo.toString());
         formData.append('product_type', productType);
-        if (imageP) { formData.append('image', imageP); }
-        images.forEach((image, index) => { formData.append(`image${index + 1}`, image); });
         try {
-            const response = await connecter.post('db/products', formData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-            });
+            formData.append('image', await optimizeProductImage(imageP));
+            const optimizedImages = await optimizeProductImages(images);
+            optimizedImages.forEach((image, index) => formData.append(`image${index + 1}`, image));
+            const response = await connecter.post('db/products', formData);
             if (response.status === 201) { window.location.reload(); }
-        } catch {
-            showToast(t('error.elementNotFound'), "error");
+        } catch (error) {
+            const serverMessage = isAxiosError(error)
+                ? error.response?.data?.error || error.response?.data?.detail
+                : undefined;
+            showToast(serverMessage || t('error.elementNotFound'), "error");
         } finally {
             setIsLoading(false);
         }

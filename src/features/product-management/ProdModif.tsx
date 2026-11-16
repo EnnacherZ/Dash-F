@@ -7,6 +7,8 @@ import { useTranslation } from "react-i18next";
 import ProductOptions from "./ProductOptions";
 import { showToast } from "@/utils/toast";
 import { FaXmark } from "react-icons/fa6";
+import { optimizeProductImage, optimizeProductImages } from "@/utils/productImages";
+import { isAxiosError } from "axios";
 
 const connecter = apiInstance;
 
@@ -113,23 +115,25 @@ const ProdModif : React.FC = () => {
             if(!(category === null || category.trim() === '' || category === undefined)){ formData.append('category', category); }
             if(!(price === null || price === '' || price === undefined)){ formData.append('price', price.toString()); }
             if(!(promo === null || promo === '' || promo === undefined)){ formData.append('promo', promo.toString()); }
-            if(!(imageP === null || imageP === undefined)){ formData.append('image', imageP); }
-            if(!(images === null || images === undefined)){
-                images.forEach((image, index) => { formData.append(`image${index + 1}`, image); });
-            }
             if (newestTouched) formData.append('newest', newest ? 'true' : 'false');
             setIsSubmitting(true);
             try {
-                const response = await connecter.patch(`db/products/manager/${prodId}/`, formData, {
-                    headers: { 'Content-Type': 'multipart/form-data' },
-                });
+                if (imageP) formData.append('image', await optimizeProductImage(imageP));
+                const optimizedImages = await optimizeProductImages(images);
+                optimizedImages.forEach((image, index) => formData.append(`image${index + 1}`, image));
+
+                // Let the browser add the multipart boundary required by Django.
+                const response = await connecter.patch(`db/products/manager/${prodId}/`, formData);
                 if(response.status === 200 || response.status === 201){
                     showToast(t('admin.product.updateSuccess'), "success");
                     setIsModal(false);
                     window.setTimeout(() => window.location.reload(), 650);
                 }
-            } catch {
-                showToast(t('admin.product.updateError'), "error");
+            } catch (error) {
+                const serverMessage = isAxiosError(error)
+                    ? error.response?.data?.error || error.response?.data?.detail
+                    : undefined;
+                showToast(serverMessage || t('admin.product.updateError'), "error");
             } finally {
                 setIsSubmitting(false);
             }
