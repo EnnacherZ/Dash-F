@@ -755,18 +755,26 @@ const ProductParameters : React.FC<{param:string}> = ({param}) => {
 
 const ProductTypes : React.FC = () => {
     const {t} = useTranslation();
-    const {productTypes = [], refetchParameters} = useParametersContext();
-    const [productTypesText, setProductTypesText] = useState("");
+    const {productTypes = [], productTypeDetails, refetchParameters} = useParametersContext();
+    const [productTypeName, setProductTypeName] = useState("");
+    const [productTypeTitleFr, setProductTypeTitleFr] = useState("");
+    const [productTypeTitleAr, setProductTypeTitleAr] = useState("");
     const [typeToDelete, setTypeToDelete] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
     const handlePostParameters = async (e: React.FormEvent) => {
         e.preventDefault();
-        const values = productTypesText.split(",").map((v) => v.trim()).filter((v) => v.length > 0);
+        const values = [{
+            name: productTypeName.trim(),
+            title_fr: productTypeTitleFr.trim(),
+            title_ar: productTypeTitleAr.trim(),
+        }];
         try {
             const response = await connecter.post("db/products/types/add", { values: values })
             if(response.status == 201){
-                setProductTypesText("");
+                setProductTypeName("");
+                setProductTypeTitleFr("");
+                setProductTypeTitleAr("");
                 await refetchParameters();
                 showToast(t('admin.product.taxonomyAdded'), "success");
             }
@@ -804,8 +812,16 @@ const ProductTypes : React.FC = () => {
         <Accordion.Body>
             <form onSubmit={handlePostParameters}>
                 <div className="mb-3">
-                    <label htmlFor="ref" className="form-label">{t('product.type')} :</label>
-                    <input className="form-control" type="text" value={productTypesText} onChange={(e) => setProductTypesText(e.target.value)} placeholder="ex: val1, val2, val3" required/>
+                    <label htmlFor="product-type-name" className="form-label">{t('admin.product.productTypeKey')} :</label>
+                    <input id="product-type-name" className="form-control" type="text" value={productTypeName} onChange={(e) => setProductTypeName(e.target.value)} placeholder="Cap" required/>
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="product-type-title-fr" className="form-label">{t('admin.product.frenchTitle')} :</label>
+                    <input id="product-type-title-fr" className="form-control" type="text" lang="fr" value={productTypeTitleFr} onChange={(e) => setProductTypeTitleFr(e.target.value)} placeholder="Casquettes" required/>
+                </div>
+                <div className="mb-3">
+                    <label htmlFor="product-type-title-ar" className="form-label">{t('admin.product.arabicTitle')} :</label>
+                    <input id="product-type-title-ar" className="form-control" type="text" lang="ar" dir="rtl" value={productTypeTitleAr} onChange={(e) => setProductTypeTitleAr(e.target.value)} placeholder="كاسكيطات" required/>
                 </div>
                 <button type="submit" className="btn btn-primary">{t('form.submit')} </button>
             </form>
@@ -815,7 +831,13 @@ const ProductTypes : React.FC = () => {
                     <div className="taxonomy-list">
                         {productTypes.map((type) => (
                             <div className="taxonomy-chip" key={type}>
-                                <span>{type}</span>
+                                <span>
+                                    <strong>{type}</strong>
+                                    {productTypeDetails.find((detail) => detail.name === type)?.title_fr &&
+                                        ` · ${productTypeDetails.find((detail) => detail.name === type)?.title_fr}`}
+                                    {productTypeDetails.find((detail) => detail.name === type)?.title_ar &&
+                                        ` · ${productTypeDetails.find((detail) => detail.name === type)?.title_ar}`}
+                                </span>
                                 <button
                                     type="button"
                                     className="taxonomy-delete-btn"

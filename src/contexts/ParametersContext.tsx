@@ -4,8 +4,16 @@ import { Product } from "@/types/product";
 
 
 
+export interface ProductTypeDetail {
+    id: number;
+    name: string;
+    title_fr: string;
+    title_ar: string;
+}
+
 interface ParametersProps {
     productTypes : Array<string> | undefined
+    productTypeDetails : Array<ProductTypeDetail>;
     categories : Record<string, string[]>;
     // FIX: this used to be fetched locally inside ProductOptions.tsx, which
     // unmounts/remounts on every tab switch (Search/Stock/Edit/Delete each
@@ -26,6 +34,7 @@ const ParametersContext = createContext<ParametersProps | undefined>(undefined);
 
 export const ParametersContextProvider : React.FC<{children:ReactNode}> = ({children}) => {
     const [productTypes, setProductTypes] = useState<Array<string>>()
+    const [productTypeDetails, setProductTypeDetails] = useState<Array<ProductTypeDetail>>([])
     const [categories, setCategories] = useState<Record<string, string[]>>({});
     const [productsByType, setProductsByType] = useState<{[key:string]: Product[]}>();
     const [productsLoading, setProductsLoading] = useState<boolean>(true);
@@ -40,6 +49,7 @@ export const ParametersContextProvider : React.FC<{children:ReactNode}> = ({chil
             const response = await connecter.get('db/products/parameters/get');
             setCategories(response.data.categories || {});
             setProductTypes(response.data.types || []);
+            setProductTypeDetails(response.data.type_details || []);
         } catch (error) {
             console.error('Failed to load product parameters:', error);
             throw error;
@@ -72,7 +82,7 @@ export const ParametersContextProvider : React.FC<{children:ReactNode}> = ({chil
 
     return(
         <ParametersContext.Provider
-        value={{productTypes, categories, productsByType, productsLoading, refetchParameters: fetchParameters}}
+        value={{productTypes, productTypeDetails, categories, productsByType, productsLoading, refetchParameters: fetchParameters}}
 
         >
         {children}
