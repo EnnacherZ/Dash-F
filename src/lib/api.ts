@@ -15,9 +15,6 @@ const apiInstance = axios.create({
   withCredentials: true,       // send the httpOnly auth cookies automatically
   xsrfCookieName: "csrftoken",
   xsrfHeaderName: "X-CSRFToken",
-  headers: {
-    "Content-Type": "application/json",
-  },
 });
 
 export default apiInstance;
