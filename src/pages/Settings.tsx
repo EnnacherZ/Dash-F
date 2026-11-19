@@ -18,6 +18,7 @@ import ModalBackdrop from "@/components/modals/ModalBackdrop";
 import { FaPen, FaSpinner, FaTrash, FaUserShield } from "react-icons/fa6";
 import {
     FaEnvelope,
+    FaBullhorn,
     FaFacebook,
     FaInstagram,
     FaPhoneAlt,
@@ -163,6 +164,10 @@ interface SiteSettingsData {
     whatsapp_url: string;
     tiktok_url: string;
     youtube_url: string;
+    announcement_enabled: boolean;
+    announcement_text_en: string;
+    announcement_text_fr: string;
+    announcement_text_ar: string;
     updated_at?: string;
 }
 
@@ -174,6 +179,10 @@ const EMPTY_SITE_SETTINGS: SiteSettingsData = {
     whatsapp_url: '',
     tiktok_url: '',
     youtube_url: '',
+    announcement_enabled: false,
+    announcement_text_en: '',
+    announcement_text_fr: '',
+    announcement_text_ar: '',
 };
 
 const SiteContactSettings: React.FC = () => {
@@ -197,7 +206,7 @@ const SiteContactSettings: React.FC = () => {
         return () => { active = false; };
     }, [t]);
 
-    const updateField = (field: keyof SiteSettingsData, value: string) => {
+    const updateField = (field: keyof SiteSettingsData, value: string | boolean) => {
         setSettings((current) => ({...current, [field]: value}));
     };
 
@@ -248,7 +257,7 @@ const SiteContactSettings: React.FC = () => {
                     <input
                         className="form-control"
                         type={field.type}
-                        value={settings[field.key] ?? ''}
+                        value={String(settings[field.key] ?? '')}
                         placeholder={field.placeholder}
                         disabled={loading || saving}
                         onChange={(event) => updateField(field.key, event.target.value)}
@@ -273,6 +282,42 @@ const SiteContactSettings: React.FC = () => {
                 <section className="site-settings-section">
                     <h3>{t('siteSettings.contactSection')}</h3>
                     {renderFields('contact')}
+                </section>
+
+                <section className="site-settings-section site-settings-announcement">
+                    <div className="site-settings-section__heading">
+                        <h3><FaBullhorn aria-hidden/> {t('siteSettings.announcementSection')}</h3>
+                        <label className="site-settings-announcement__toggle">
+                            <input
+                                type="checkbox"
+                                checked={settings.announcement_enabled}
+                                disabled={loading || saving}
+                                onChange={(event) => updateField('announcement_enabled', event.target.checked)}
+                            />
+                            <span>{settings.announcement_enabled ? t('siteSettings.announcementOn') : t('siteSettings.announcementOff')}</span>
+                        </label>
+                    </div>
+                    <p className="site-settings-announcement__hint">{t('siteSettings.announcementHint')}</p>
+                    <div className="site-settings-grid">
+                        {([
+                            ['announcement_text_ar', t('siteSettings.announcementAr'), 'اكتب إعلان المتجر هنا…'],
+                            ['announcement_text_fr', t('siteSettings.announcementFr'), 'Saisissez l’annonce…'],
+                            ['announcement_text_en', t('siteSettings.announcementEn'), 'Enter the announcement…'],
+                        ] as const).map(([key, label, placeholder]) => (
+                            <label className="site-settings-field" key={key}>
+                                <span className="site-settings-field__label">{label}</span>
+                                <textarea
+                                    className="form-control"
+                                    rows={2}
+                                    maxLength={300}
+                                    value={settings[key]}
+                                    placeholder={placeholder}
+                                    disabled={loading || saving}
+                                    onChange={(event) => updateField(key, event.target.value)}
+                                />
+                            </label>
+                        ))}
+                    </div>
                 </section>
 
                 <section className="site-settings-section">

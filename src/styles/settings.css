@@ -360,6 +360,22 @@
   min-height: 44px;
 }
 
+.site-settings-announcement__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--db-ink-soft);
+  font-size: .78rem;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.site-settings-announcement__toggle input { width: 18px; height: 18px; accent-color: var(--db-brand); }
+.site-settings-announcement__hint { margin: 0 0 12px; color: var(--db-muted); font-size: .78rem; }
+.site-settings-announcement textarea.form-control { min-height: 74px; resize: vertical; }
+.site-settings-announcement .site-settings-section__heading h3 { display: inline-flex; align-items: center; gap: 8px; }
+
 .site-settings-actions {
   display: flex;
   align-items: center;
